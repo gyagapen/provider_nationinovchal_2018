@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:location/location.dart';
+import 'package:flutter/services.dart' show PlatformException;
+import 'helpers/common.dart';
+import 'dialogs/localisation_dialog.dart';
 
 class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
+  MyHomePage({Key key}) : super(key: key);
 
   // This widget is the home page of your application. It is stateful, meaning
   // that it has a State object (defined below) that contains fields that affect
@@ -12,74 +16,129 @@ class MyHomePage extends StatefulWidget {
   // used by the build method of the State. Fields in a Widget subclass are
   // always marked "final".
 
-  final String title;
-
   @override
   _MyHomePageState createState() => new _MyHomePageState();
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+  var _currentLocation = <String, double>{};
+  bool _dataConnectionAvailable = true;
+  bool _gpsPositionAvailable = true;
 
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
+  @override
+  initState() {
+    //try to get location
+    getLocalisation(context);
   }
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
+    //photo
+    var avatarCircle = new Center(
+      child: new CircleAvatar(
+        backgroundImage: new AssetImage("images/health.png"),
+        backgroundColor: Colors.grey[300],
+        radius: 50.0,
+      ),
+    );
+
+    //name
+    var nameHeader = new Container(
+      padding: new EdgeInsets.all(5.0),
+      height: 150.0,
+      color: Colors.grey[300],
+      child: new Column(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [avatarCircle, new Text('SAMU - Patrol 1', style: new TextStyle(fontWeight: FontWeight.bold),)],
+      ),
+    );
+
+    var gpsErrorRetryWrapper = new Column(
+      children: [
+        nameHeader,
+        new Container(
+          padding: new EdgeInsets.fromLTRB(5.0, 150.0, 5.0, 5.0),
+          child: new Text(
+            "Error while getting your location",
+            style: new TextStyle(
+                color: Colors.red[900], fontWeight: FontWeight.bold),
+          ),
+        ),
+        new Container(
+          padding: new EdgeInsets.fromLTRB(5.0, 20.0, 5.0, 5.0),
+          child: new RaisedButton(
+            child: new Text("Retry"),
+            onPressed: () {
+              getLocalisation(context);
+            },
+          ),
+        )
+      ],
+    );
+
+    var dataErrorRetryWrapper = new Column(
+      children: [
+        nameHeader,
+        new Container(
+          padding: new EdgeInsets.fromLTRB(5.0, 150.0, 5.0, 5.0),
+          child: new Text(
+            "Error while getting your location",
+            style: new TextStyle(
+                color: Colors.red[900], fontWeight: FontWeight.bold),
+          ),
+        ),
+        new Container(
+          padding: new EdgeInsets.fromLTRB(5.0, 20.0, 5.0, 5.0),
+          child: new RaisedButton(
+            child: new Text("Retry"),
+            onPressed: () {
+              getLocalisation(context);
+            },
+          ),
+        )
+      ],
+    );
+
+    var mainWrapper = new Column(
+      children: [
+        new Text("ok"),
+      ],
+    );
+
     return new Scaffold(
       appBar: new AppBar(
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: new Text(widget.title),
+        title: Common.generateAppTitleBar(),
       ),
-      body: new Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: new Column(
-          // Column is also layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Invoke "debug paint" (press "p" in the console where you ran
-          // "flutter run", or select "Toggle Debug Paint" from the Flutter tool
-          // window in IntelliJ) to see the wireframe for each widget.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            new Text(
-              'You have pushed the button this many times:',
-            ),
-            new Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.display1,
-            ),
-          ],
-        ),
-      ),
-      floatingActionButton: new FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: new Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+      body: new Stack(children: [
+        _gpsPositionAvailable ? mainWrapper : gpsErrorRetryWrapper,
+      ]),
+      // This trailing comma makes auto-formatting nicer for build methods.
     );
+  }
+
+  //retrieve localisation
+  void getLocalisation(BuildContext context) async {
+    var location = new Location();
+    try {
+      _currentLocation = await location.getLocation;
+      Common.myLocation.latitude = _currentLocation["latitude"];
+      Common.myLocation.longitude = _currentLocation["longitude"];
+
+      location.onLocationChanged.listen((Map<String, double> currentLocation) {
+        Common.myLocation.latitude = currentLocation["latitude"];
+        Common.myLocation.longitude = currentLocation["longitude"];
+      });
+      print('success localisation' + _currentLocation.toString());
+      setState(() {
+        _gpsPositionAvailable = true;
+      });
+    } on PlatformException {
+      setState(() {
+        _gpsPositionAvailable = false;
+      });
+      _currentLocation = null;
+      showLocalisationSettingsDialog(context);
+      print('failed localisation ');
+    }
   }
 }

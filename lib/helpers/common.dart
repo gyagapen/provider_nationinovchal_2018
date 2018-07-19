@@ -1,7 +1,13 @@
 import 'package:flutter/material.dart';
+import '../models/custom_location.dart';
 
 class Common {
-  
+  static CustomLocation myLocation = new CustomLocation();
+  static String wsTechnicalError =
+      "Cannot contact MauSafe servers. Kindly ensure that you are connected to internet";
+  static String wsUserError =
+      "Error while sending request to MauSafe servers. Error Details: ";
+
   static Container generateAppTitleBar() {
     var appTitleBar = new Container(
         child: new Row(
