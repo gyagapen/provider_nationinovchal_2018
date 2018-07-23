@@ -8,6 +8,8 @@ class Common {
   static String wsUserError =
       "Error while sending request to MauSafe servers. Error Details: ";
 
+  static String providerType = "SAMU";
+
   static Container generateAppTitleBar() {
     var appTitleBar = new Container(
         child: new Row(

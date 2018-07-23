@@ -1,6 +1,6 @@
 class ComputedDistance {
-  String distanceKm;
-  String eTAmin;
+  String distanceKm = "Undefined";
+  String eTAmin = "Undefined";
 
   ComputedDistance({this.distanceKm, this.eTAmin});
 

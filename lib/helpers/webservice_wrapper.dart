@@ -2,6 +2,7 @@ import 'dart:convert';
 import '../services/service_help_request.dart';
 import '../models/help_request.dart';
 import '../models/assignment_details.dart';
+import '../models/position_object.dart';
 import 'common.dart';
 
 class WebserServiceWrapper {
@@ -12,6 +13,8 @@ class WebserServiceWrapper {
       ServiceHelpRequest
           .retrieveLiveRequest(providerType, longitude, latitude)
           .then((response) {
+        List<HelpRequest> helpRequestList = new List<HelpRequest>();
+
         if (response.statusCode == 200) {
           Map<String, dynamic> decodedResponse = json.decode(response.body);
           if (decodedResponse["status"] == true) {
@@ -19,17 +22,13 @@ class WebserServiceWrapper {
               //no pending help request
               callback(null, null);
             } else {
-              //build service providers as
-              HelpRequest helpRequest =
-                  HelpRequest.fromJson(decodedResponse["help_details"]);
-
-              List<AssignmentDetails> assignmentDetails =
-                  new List<AssignmentDetails>();
-              if (decodedResponse["assignment_details"] != null) {
-                for (var assignment in decodedResponse["assignment_details"]) {
-                  assignmentDetails.add(AssignmentDetails.fromJson(assignment));
-                }
+              //build list of help request
+              for (var helpRequestJson in decodedResponse["help_details"]) {
+                HelpRequest helpRequest = HelpRequest.fromJson(helpRequestJson);
+                helpRequestList.add(helpRequest);
               }
+
+              callback(helpRequestList, null);
             }
           }
         } else {

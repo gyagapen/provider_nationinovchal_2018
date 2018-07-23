@@ -13,7 +13,7 @@ class ServiceHelpRequest {
   }
 
   static Future<http.Response> retrieveLiveRequest(String providerType, String longitude, String latitude) async {
-    return http.get(serviceBaseUrl + 'HelpRequest?service_provider_type=' + providerType+'&longitude='+longitude+'&latitude='+latitude,
+    return http.get(serviceBaseUrl + 'HelpRequest/retrievePendingRequestForProvider?service_provider_type=' + providerType+'&longitude='+longitude+'&latitude='+latitude,
         headers: generateHeaders());
   }
 }
