@@ -2,7 +2,7 @@ import 'package:http/http.dart' as http;
 import 'dart:async';
 
 class ServiceHelpRequest {
-  static String serviceBaseUrl = "http://192.168.0.107:8083/mausafe/index.php/";
+  static String serviceBaseUrl = "http://192.168.0.105:8083/mausafe/index.php/";
   static String apiKey = "58eb50e1-f87b-44a7-a4be-dcccd71625eb";
 
   static Map<String, String> generateHeaders() {

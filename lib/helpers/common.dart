@@ -10,6 +10,8 @@ class Common {
 
   static String providerType = "SAMU";
 
+  static Duration refreshListDuration = new Duration(seconds: 15);
+
   static Container generateAppTitleBar() {
     var appTitleBar = new Container(
         child: new Row(

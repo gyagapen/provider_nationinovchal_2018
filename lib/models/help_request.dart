@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'assignment_details.dart';
 import 'position_object.dart';
 
@@ -12,6 +13,7 @@ class HelpRequest {
   String deviceName;
   String status;
   String eventType;
+  ImageIcon eventIcon;
   PositionObject latestPosition;
   List<AssignmentDetails> assignments;
   List<String> requestedServiceProviders;
@@ -28,7 +30,8 @@ class HelpRequest {
       this.status,
       this.eventType,
       this.assignments,
-      this.latestPosition});
+      this.latestPosition,
+      this.eventIcon});
 
   factory HelpRequest.fromJson(Map<String, dynamic> json) {
     PositionObject positionObject =
@@ -41,6 +44,8 @@ class HelpRequest {
       }
     }
 
+    ImageIcon imageIcon = HelpRequest.getIcon(json['event_type']);
+
     HelpRequest helpRequest = HelpRequest(
         id: json['id'],
         name: json['name'],
@@ -52,6 +57,7 @@ class HelpRequest {
         deviceName: json['device_name'],
         status: json['status'],
         eventType: json['event_type'],
+        eventIcon: imageIcon,
         latestPosition: positionObject,
         assignments: assignmentDetails);
 
@@ -63,5 +69,57 @@ class HelpRequest {
     helpRequest.requestedServiceProviders = requestedProvidersStr.split('|');
 
     return helpRequest;
+  }
+
+  static ImageIcon getIcon(String eventType) {
+    ImageIcon iconImage = new ImageIcon(AssetImage("images/applogo.png"));
+
+    switch (eventType) {
+      case "Accident":
+        iconImage = new ImageIcon(
+          AssetImage("images/accident.png"),
+          color: Colors.blue[500],
+        );
+        break;
+      case "Health":
+        iconImage = new ImageIcon(
+          AssetImage("images/health.png"),
+          color: Colors.red[500],
+        );
+        break;
+      case "Assault":
+        iconImage = new ImageIcon(
+          AssetImage("images/assault.png"),
+          color: Colors.green[500],
+        );
+        break;
+      case "Fireman":
+        iconImage = new ImageIcon(
+          AssetImage("images/fire.png"),
+          color: Colors.orange[500],
+        );
+        break;
+      case "Thief":
+        iconImage = new ImageIcon(
+          AssetImage("images/thieft.png"),
+          color: Colors.indigo[500],
+        );
+
+        break;
+      case "Drowning":
+        iconImage = new ImageIcon(
+          AssetImage("images/drowning.png"),
+          color: Colors.cyan[500],
+        );
+        break;
+      case "Track me":
+        iconImage = new ImageIcon(
+          AssetImage("images/track_me.png"),
+          color: Colors.lightGreen[500],
+        );
+        break;
+    }
+
+    return iconImage;
   }
 }

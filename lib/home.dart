@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:location/location.dart';
 import 'package:flutter/services.dart' show PlatformException;
 import 'helpers/common.dart';
+import 'dart:async';
 import 'dialogs/localisation_dialog.dart';
 import 'package:progress_hud/progress_hud.dart';
 import 'models/help_request.dart';
@@ -24,15 +25,18 @@ class MyHomePage extends StatefulWidget {
   _MyHomePageState createState() => new _MyHomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
   var _currentLocation = <String, double>{};
   bool _dataConnectionAvailable = true;
   bool _gpsPositionAvailable = true;
   ProgressHUD _progressHUD;
   List<HelpRequest> helpRequestDetails = new List<HelpRequest>();
+  Timer refreshListTimer;
 
   @override
   initState() {
+    WidgetsBinding.instance.addObserver(this);
+
     //try to get location
     getLocalisation(context);
 
@@ -124,11 +128,20 @@ class _MyHomePageState extends State<MyHomePage> {
       children: [
         nameHeader,
         new Container(
-          padding: new EdgeInsets.fromLTRB(5.0, 20.0, 5.0, 5.0),
-          child: new RaisedButton(
-            child: new Text("Reload help requests"),
+          padding: new EdgeInsets.fromLTRB(120.0, 5.0, 5.0, 5.0),
+          child: new FlatButton(
+            child: new Row(children: [
+              new Icon(Icons.refresh),
+              new Text(
+                "Refresh",
+                style: new TextStyle(
+                    fontStyle: FontStyle.italic, color: Colors.black54),
+              )
+            ]),
             onPressed: () {
-              getPendingHelpRequestFromServer();
+              setState(() {
+                getPendingHelpRequestFromServer();
+              });
             },
           ),
         ),
@@ -199,8 +212,16 @@ class _MyHomePageState extends State<MyHomePage> {
 
   void callbackWsGetExistingHelpReq(
       List<HelpRequest> helpRequestList, Exception e) {
+
+    print('callbackWsGetExistingHelpReq');
+
     if (_progressHUD.state != null) {
       _progressHUD.state.dismiss();
+    }
+
+    //cancel timer
+    if (refreshListTimer != null) {
+      refreshListTimer.cancel();
     }
 
     if (e == null) {
@@ -215,6 +236,10 @@ class _MyHomePageState extends State<MyHomePage> {
       } else {
         print("No pending request");
       }
+
+      //initiate timer for refresh
+      refreshListTimer = Timer.periodic(Common.refreshListDuration,
+          (Timer t) => getPendingHelpRequestFromServer());
     } else {
       print("error: " + e.toString());
       if (e.toString().startsWith(Common.wsUserError)) {
@@ -241,59 +266,106 @@ class _MyHomePageState extends State<MyHomePage> {
       //build help request cards
 
       var spNameHeader = new Container(
-          padding: new EdgeInsets.fromLTRB(0.0, 5.0, 0.0, 25.0),
+          padding: new EdgeInsets.fromLTRB(0.0, 5.0, 0.0, 0.0),
           child: new Row(
             mainAxisAlignment: MainAxisAlignment.center,
             mainAxisSize: MainAxisSize.min,
             children: [
               new Container(
-                  padding: new EdgeInsets.fromLTRB(0.0, 0.0, 5.0, 0.0),
-                  child: new Icon(Icons.help)),
+                padding: new EdgeInsets.fromLTRB(0.0, 0.0, 5.0, 0.0),
+                child: helpRequest.eventIcon,
+              ),
               new Text(
                 helpRequest.eventType.toUpperCase(),
                 style: new TextStyle(
-                  fontSize: 25.0,
+                  fontSize: 17.0,
+                  fontWeight: FontWeight.bold,
                 ),
-              )
+              ),
             ],
           ));
 
       var spContainer = new Column(
         mainAxisAlignment: MainAxisAlignment.center,
-        mainAxisSize: MainAxisSize.max,
+        mainAxisSize: MainAxisSize.min,
         children: [
+          //Name
+          new Container(
+            padding: new EdgeInsets.fromLTRB(0.0, 0.0, 5.0, 10.0),
+            child: new Row(children: [
+              new Container(
+                  padding: new EdgeInsets.fromLTRB(70.0, 0.0, 0.0, 0.0),
+                  child: new Text(
+                    "Name: ",
+                    style: new TextStyle(
+                        color: Colors.black,
+                        fontSize: 15.0,
+                        fontWeight: FontWeight.bold),
+                  )),
+              new Container(
+                  padding: new EdgeInsets.fromLTRB(5.0, 0.0, 0.0, 0.0),
+                  child: new Text(
+                    helpRequest.name,
+                    style: new TextStyle(color: Colors.black, fontSize: 15.0),
+                  )),
+            ]),
+          ),
+
+          //Address
           new Container(
             padding: new EdgeInsets.fromLTRB(0.0, 0.0, 5.0, 0.0),
-            child: new Container(
-              padding: new EdgeInsets.fromLTRB(0.0, 5.0, 0.0, 0.0),
-              child: new Container(
+            child: new Row(children: [
+              new Container(
+                padding: new EdgeInsets.fromLTRB(40.0, 0.0, 5.0, 0.0),
                 child: new Text(
-                  helpRequest.name,
-                  style: new TextStyle(color: Colors.black, fontSize: 15.0),
+                  "Address: ",
+                  style: new TextStyle(
+                      color: Colors.black,
+                      fontSize: 15.0,
+                      fontWeight: FontWeight.bold),
                 ),
               ),
-            ),
+              new Flexible(
+                child: new Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    new Text(
+                      helpRequest.latestPosition.distance.originAddress,
+                      style: new TextStyle(color: Colors.black, fontSize: 15.0),
+                    )
+                  ],
+                ),
+              ),
+            ]),
           ),
+          //ETA
           new Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             mainAxisSize: MainAxisSize.max,
             children: [
               new Container(
                 padding: new EdgeInsets.fromLTRB(0.0, 25.0, 0.0, 0.0),
-                child: new Text(
-                  helpRequest.latestPosition.distance.eTAmin,
-                  style: new TextStyle(
-                      fontStyle: FontStyle.italic, fontSize: 15.0),
-                ),
+                child: new Row(children: [
+                  new Icon(Icons.hourglass_empty),
+                  new Text(
+                    helpRequest.latestPosition.distance.eTAmin,
+                    style: new TextStyle(
+                        fontStyle: FontStyle.italic, fontSize: 15.0),
+                  ),
+                ]),
               ),
               new Container(
-                padding: new EdgeInsets.fromLTRB(0.0, 25.0, 0.0, 0.0),
-                child: new Text(
-                  helpRequest.latestPosition.distance.distanceKm,
-                  style: new TextStyle(
-                      fontStyle: FontStyle.italic, fontSize: 15.0),
-                ),
-              )
+                  padding: new EdgeInsets.fromLTRB(0.0, 25.0, 0.0, 0.0),
+                  child: new Row(
+                    children: [
+                      new Icon(Icons.drive_eta),
+                      new Text(
+                        helpRequest.latestPosition.distance.distanceKm,
+                        style: new TextStyle(
+                            fontStyle: FontStyle.italic, fontSize: 15.0),
+                      ),
+                    ],
+                  ))
             ],
           )
         ],
@@ -302,9 +374,12 @@ class _MyHomePageState extends State<MyHomePage> {
       var spCard = new Card(
           child: new Container(
         width: 300.0,
-        height: 130.0,
+        height: 165.0,
         child: new Column(children: [
           spNameHeader,
+          new Divider(
+            color: Colors.black45,
+          ),
           spContainer,
         ]),
       ));
@@ -318,5 +393,30 @@ class _MyHomePageState extends State<MyHomePage> {
       addAutomaticKeepAlives: true,
       children: listOfHelpRequest,
     );
+  }
+
+  /****** Handle activity states **********/
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    print("state has changed: " + state.toString());
+    setState(() {
+      if (state == AppLifecycleState.resumed) {
+        if (_dataConnectionAvailable && _gpsPositionAvailable) {
+          refreshListTimer.cancel();
+          refreshListTimer = Timer.periodic(Common.refreshListDuration,
+              (Timer t) => getPendingHelpRequestFromServer());
+        }
+      } else if (state == AppLifecycleState.inactive) {
+        if (refreshListTimer != null) {
+          refreshListTimer.cancel();
+        }
+      }
+    });
   }
 }

@@ -1,13 +1,21 @@
 class ComputedDistance {
   String distanceKm = "Undefined";
   String eTAmin = "Undefined";
+  String originAddress = "Undefined";
+  String destinationAddress = "Undefined";
 
-  ComputedDistance({this.distanceKm, this.eTAmin});
+  ComputedDistance(
+      {this.distanceKm,
+      this.eTAmin,
+      this.originAddress,
+      this.destinationAddress});
 
   factory ComputedDistance.fromJson(Map<String, dynamic> json) {
     return ComputedDistance(
       distanceKm: json['distance'],
-      eTAmin: json['time']
+      eTAmin: json['time'],
+      originAddress: json['origin_address'],
+      destinationAddress: json['destination_address'],
     );
   }
 }
