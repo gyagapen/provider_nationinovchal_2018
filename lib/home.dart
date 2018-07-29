@@ -8,6 +8,7 @@ import 'package:progress_hud/progress_hud.dart';
 import 'models/help_request.dart';
 import 'helpers/webservice_wrapper.dart';
 import 'dialogs/dialog_error_webservice.dart';
+import 'request_info.dart';
 
 class MyHomePage extends StatefulWidget {
   MyHomePage({Key key}) : super(key: key);
@@ -212,7 +213,6 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
 
   void callbackWsGetExistingHelpReq(
       List<HelpRequest> helpRequestList, Exception e) {
-
     print('callbackWsGetExistingHelpReq');
 
     if (_progressHUD.state != null) {
@@ -372,20 +372,33 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
       );
 
       var spCard = new Card(
-          child: new Container(
-        width: 300.0,
-        height: 165.0,
-        child: new Column(children: [
-          spNameHeader,
-          new Divider(
-            color: Colors.black45,
-          ),
-          spContainer,
-        ]),
-      ));
+        child: new Container(
+          width: 300.0,
+          height: 165.0,
+          child: new Column(children: [
+            spNameHeader,
+            new Divider(
+              color: Colors.black45,
+            ),
+            spContainer,
+          ]),
+        ),
+      );
+
+      var spCardDetector = new GestureDetector(
+        child: spCard,
+        onTap: (){
+          Navigator.push(
+            context,
+            new MaterialPageRoute(
+              builder: (context) => new RequestInfoPage(helpRequest: helpRequest,),
+            ),
+          );
+        },
+      );
 
       listOfHelpRequest.add(new ListTile(
-        title: spCard,
+        title: spCardDetector,
       ));
     }
 
