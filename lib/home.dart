@@ -72,7 +72,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
         children: [
           avatarCircle,
           new Text(
-            'SAMU - Patrol 1',
+            'SAMU - Patrol '+Common.patrolID,
             style: new TextStyle(fontWeight: FontWeight.bold),
           )
         ],

@@ -6,8 +6,8 @@ import 'dart:async';
 import 'dialogs/localisation_dialog.dart';
 import 'package:progress_hud/progress_hud.dart';
 import 'models/help_request.dart';
-import 'helpers/webservice_wrapper.dart';
 import 'dialogs/dialog_error_webservice.dart';
+import 'services/service_help_request.dart';
 
 class RequestInfoPage extends StatefulWidget {
   RequestInfoPage({Key key, this.helpRequest}) : super(key: key);
@@ -21,6 +21,7 @@ class RequestInfoPage extends StatefulWidget {
 class _RequestInfoPageState extends State<RequestInfoPage>
     with WidgetsBindingObserver {
   ProgressHUD _progressHUD;
+  bool _isAssigned = false;
 
   @override
   initState() {
@@ -45,11 +46,15 @@ class _RequestInfoPageState extends State<RequestInfoPage>
       children: [
         new Container(
           padding: new EdgeInsets.fromLTRB(75.0, 5.0, 20.0, 5.0),
-          child: new RaisedButton(
-            textColor: Colors.black,
-            child: new Text("Accept".toUpperCase()),
-            onPressed: () {},
-          ),
+          child: _isAssigned
+              ? new Text("")
+              : new RaisedButton(
+                  textColor: Colors.black,
+                  child: new Text("Accept".toUpperCase()),
+                  onPressed: () {
+                    assignPatrol();
+                  },
+                ),
         ),
         new Container(
           padding: new EdgeInsets.fromLTRB(5.0, 5.0, 75.0, 5.0),
@@ -338,6 +343,29 @@ class _RequestInfoPageState extends State<RequestInfoPage>
         ));
 
     return spCard;
+  }
+
+  void assignPatrol() {
+    Common.getDeviceUID().then((uiD) {
+      HelpRequest helpRequest = widget.helpRequest;
+      ServiceHelpRequest
+          .assignPatrol(helpRequest.id, Common.myLocation.longitude.toString(),
+              Common.myLocation.latitude.toString(), Common.patrolID, uiD)
+          .then((response) {
+        if (response.statusCode == 200) {
+          //ok
+          print("assignment is ok");
+        } else {
+          showDataConnectionError(context, Common.wsUserError);
+        }
+      }).catchError((e) {
+        showDataConnectionError(
+            context, Common.wsTechnicalError + ": " + e.toString());
+      });
+    }).catchError((e) {
+      showDataConnectionError(
+          context, Common.wsTechnicalError + ": " + e.toString());
+    });
   }
 
   /****** Handle activity states **********/

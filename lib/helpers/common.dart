@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import '../models/custom_location.dart';
+import 'dart:async';
+import 'package:device_info/device_info.dart';
+import 'package:flutter/services.dart' show PlatformException;
 
 class Common {
   static CustomLocation myLocation = new CustomLocation();
@@ -11,6 +14,8 @@ class Common {
   static String providerType = "SAMU";
 
   static Duration refreshListDuration = new Duration(seconds: 15);
+
+  static String patrolID = "1";
 
   static Container generateAppTitleBar() {
     var appTitleBar = new Container(
@@ -31,4 +36,23 @@ class Common {
 
     return appTitleBar;
   }
+
+  //get device UUID
+static Future<String> getDeviceUID() async {
+  String deviceName;
+  String deviceVersion;
+  String identifier;
+  final DeviceInfoPlugin deviceInfoPlugin = new DeviceInfoPlugin();
+  try {
+    var build = await deviceInfoPlugin.androidInfo;
+    identifier = build.id;
+    deviceName = build.model;
+    deviceVersion = build.version.toString();
+  } on PlatformException {
+    print('Failed to get platform version');
+  }
+
+//if (!mounted) return;
+  return identifier+"-"+deviceName;
+}
 }

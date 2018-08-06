@@ -1,7 +1,7 @@
 class ComputedDistance {
   String distanceKm = "Undefined";
   String eTAmin = "Undefined";
-  String originAddress = "Undefined";
+  String originAddress = "Undefined blank";
   String destinationAddress = "Undefined";
 
   ComputedDistance(

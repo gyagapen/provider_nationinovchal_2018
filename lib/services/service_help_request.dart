@@ -2,6 +2,7 @@ import 'package:http/http.dart' as http;
 import 'dart:async';
 
 class ServiceHelpRequest {
+  //static String serviceBaseUrl = "http://aroma.mu/webservices/mausafe/index.php/";
   static String serviceBaseUrl = "http://192.168.0.105:8083/mausafe/index.php/";
   static String apiKey = "58eb50e1-f87b-44a7-a4be-dcccd71625eb";
 
@@ -12,8 +13,34 @@ class ServiceHelpRequest {
     return headers;
   }
 
-  static Future<http.Response> retrieveLiveRequest(String providerType, String longitude, String latitude) async {
-    return http.get(serviceBaseUrl + 'HelpRequest/retrievePendingRequestForProvider?service_provider_type=' + providerType+'&longitude='+longitude+'&latitude='+latitude,
+  static Future<http.Response> retrieveLiveRequest(
+      String providerType, String longitude, String latitude) async {
+    return http.get(
+        serviceBaseUrl +
+            'HelpRequest/retrievePendingRequestForProvider?service_provider_type=' +
+            providerType +
+            '&longitude=' +
+            longitude +
+            '&latitude=' +
+            latitude,
         headers: generateHeaders());
+  }
+
+  static Future<http.Response> assignPatrol(
+      String helpRequestId,
+      String longitude,
+      String latitude,
+      String patrolId,
+      String deviceId) async {
+    Map<String, String> bodyRequest = new Map<String, String>();
+
+    bodyRequest["help_request_id"] = helpRequestId;
+    bodyRequest["patrol_id"] = patrolId;
+    bodyRequest["longitude"] = longitude;
+    bodyRequest["latitude"] = latitude;
+    bodyRequest["device_id"] = deviceId;
+
+    return http.post(serviceBaseUrl + 'Patrol/assign',
+        headers: generateHeaders(), body: bodyRequest);
   }
 }
