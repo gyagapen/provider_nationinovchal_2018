@@ -72,7 +72,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
         children: [
           avatarCircle,
           new Text(
-            'SAMU - Patrol '+Common.patrolID,
+            'SAMU - Patrol ' + Common.patrolID,
             style: new TextStyle(fontWeight: FontWeight.bold),
           )
         ],
@@ -118,7 +118,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
           child: new RaisedButton(
             child: new Text("Retry"),
             onPressed: () {
-              getPendingHelpRequestFromServer();
+              getPendingHelpRequestFromServer(true);
             },
           ),
         )
@@ -186,7 +186,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
       print('success localisation' + _currentLocation.toString());
 
       //if ok get list of pending request
-      getPendingHelpRequestFromServer();
+      getPendingHelpRequestFromServer(true);
 
       _gpsPositionAvailable = true;
     } on PlatformException {
@@ -203,16 +203,17 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
   }
 
   //get live request details
-  void getPendingHelpRequestFromServer() {
+  void getPendingHelpRequestFromServer([bool firstCall = false]) {
     WebserServiceWrapper.getPendingHelpRequestForProvider(
         Common.providerType,
         Common.myLocation.longitude.toString(),
         Common.myLocation.latitude.toString(),
+        firstCall,
         callbackWsGetExistingHelpReq);
   }
 
   void callbackWsGetExistingHelpReq(
-      List<HelpRequest> helpRequestList, Exception e) {
+      List<HelpRequest> helpRequestList, Exception e, bool firstCall) {
     print('callbackWsGetExistingHelpReq');
 
     if (_progressHUD.state != null) {
@@ -230,14 +231,41 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
         _gpsPositionAvailable = true;
       });
 
+      var assignmentFound = false;
+
       if (helpRequestList != null) {
         //populate list of help
         helpRequestDetails = helpRequestList;
+
+        //check if any request assigned
+        if (firstCall) {
+          for (var helpRequest in helpRequestDetails) {
+            for (var assignment in helpRequest.assignments) {
+              if (assignment.patrolId == Common.patrolID) {
+                //go to track info page
+                assignmentFound = true;
+                Navigator.push(
+                  context,
+                  new MaterialPageRoute(
+                    builder: (context) => new RequestInfoPage(
+                          helpRequest: helpRequest,
+                          patrolAssignmentId: assignment.id,
+                        ),
+                  ),
+                );
+                break;
+              }
+            }
+
+            if (assignmentFound) {
+              break;
+            }
+          }
+        }
       } else {
         print("No pending request");
       }
 
-      //initiate timer for refresh
       refreshListTimer = Timer.periodic(Common.refreshListDuration,
           (Timer t) => getPendingHelpRequestFromServer());
     } else {
@@ -387,11 +415,14 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
 
       var spCardDetector = new GestureDetector(
         child: spCard,
-        onTap: (){
+        onTap: () {
           Navigator.push(
             context,
             new MaterialPageRoute(
-              builder: (context) => new RequestInfoPage(helpRequest: helpRequest,),
+              builder: (context) => new RequestInfoPage(
+                    helpRequest: helpRequest,
+                    patrolAssignmentId: "",
+                  ),
             ),
           );
         },
@@ -412,6 +443,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
 
   @override
   void dispose() {
+    print("dispose called");
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }

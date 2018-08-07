@@ -31,16 +31,29 @@ class ServiceHelpRequest {
       String longitude,
       String latitude,
       String patrolId,
-      String deviceId) async {
+      String deviceId,
+      String patrolType) async {
     Map<String, String> bodyRequest = new Map<String, String>();
 
     bodyRequest["help_request_id"] = helpRequestId;
     bodyRequest["patrol_id"] = patrolId;
     bodyRequest["longitude"] = longitude;
-    bodyRequest["latitude"] = latitude;
+    bodyRequest ["latitude"] = latitude;
     bodyRequest["device_id"] = deviceId;
+    bodyRequest["patrol_type"] = patrolType;
 
     return http.post(serviceBaseUrl + 'Patrol/assign',
+        headers: generateHeaders(), body: bodyRequest);
+  }
+
+  static Future<http.Response> cancelPatrolAssignment(
+      String assignmentId) async {
+    Map<String, String> bodyRequest = new Map<String, String>();
+
+    bodyRequest["assignment_id"] = assignmentId;  
+
+
+    return http.post(serviceBaseUrl + 'Patrol/cancel',
         headers: generateHeaders(), body: bodyRequest);
   }
 }

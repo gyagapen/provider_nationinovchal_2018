@@ -6,8 +6,8 @@ import '../models/position_object.dart';
 import 'common.dart';
 
 class WebserServiceWrapper {
-  static void getPendingHelpRequestForProvider(
-      String providerType, String longitude, String latitude, callback) {
+  static void getPendingHelpRequestForProvider(String providerType,
+      String longitude, String latitude, bool firstCall, callback) {
     try {
       //call webservice to check if any live request
       ServiceHelpRequest
@@ -20,7 +20,7 @@ class WebserServiceWrapper {
           if (decodedResponse["status"] == true) {
             if (decodedResponse["help_details"] == null) {
               //no pending help request
-              callback(null, null);
+              callback(null, null, firstCall);
             } else {
               //build list of help request
               for (var helpRequestJson in decodedResponse["help_details"]) {
@@ -28,7 +28,7 @@ class WebserServiceWrapper {
                 helpRequestList.add(helpRequest);
               }
 
-              callback(helpRequestList, null);
+              callback(helpRequestList, null, firstCall);
             }
           }
         } else {
@@ -36,10 +36,10 @@ class WebserServiceWrapper {
           throw ex;
         }
       }).catchError((e) {
-        callback(null, e);
+        callback(null, e, firstCall);
       });
     } catch (e) {
-      callback(null, e);
+      callback(null, e, firstCall);
     }
   }
 }

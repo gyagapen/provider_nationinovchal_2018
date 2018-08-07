@@ -1,18 +1,21 @@
 import 'package:flutter/material.dart';
-import 'package:location/location.dart';
-import 'package:flutter/services.dart' show PlatformException;
 import 'helpers/common.dart';
-import 'dart:async';
-import 'dialogs/localisation_dialog.dart';
 import 'package:progress_hud/progress_hud.dart';
 import 'models/help_request.dart';
 import 'dialogs/dialog_error_webservice.dart';
 import 'services/service_help_request.dart';
+import 'dart:convert';
+import 'dialogs/dialog_cancel_request.dart';
+import 'package:http/http.dart' as http;
+import 'package:url_launcher/url_launcher.dart';
+import 'dart:async';
 
 class RequestInfoPage extends StatefulWidget {
-  RequestInfoPage({Key key, this.helpRequest}) : super(key: key);
+  RequestInfoPage({Key key, this.helpRequest, this.patrolAssignmentId})
+      : super(key: key);
 
   final HelpRequest helpRequest;
+  final String patrolAssignmentId;
 
   @override
   _RequestInfoPageState createState() => new _RequestInfoPageState();
@@ -22,10 +25,16 @@ class _RequestInfoPageState extends State<RequestInfoPage>
     with WidgetsBindingObserver {
   ProgressHUD _progressHUD;
   bool _isAssigned = false;
+  String _assignmentId = "";
 
   @override
   initState() {
     WidgetsBinding.instance.addObserver(this);
+
+    if (widget.patrolAssignmentId != "") {
+      _isAssigned = true;
+      _assignmentId = widget.patrolAssignmentId;
+    }
 
     //initiate progress hud
     _progressHUD = new ProgressHUD(
@@ -40,32 +49,62 @@ class _RequestInfoPageState extends State<RequestInfoPage>
 
   @override
   Widget build(BuildContext context) {
-    var actionButtons = new Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      mainAxisSize: MainAxisSize.max,
-      children: [
-        new Container(
-          padding: new EdgeInsets.fromLTRB(75.0, 5.0, 20.0, 5.0),
-          child: _isAssigned
-              ? new Text("")
-              : new RaisedButton(
-                  textColor: Colors.black,
-                  child: new Text("Accept".toUpperCase()),
-                  onPressed: () {
-                    assignPatrol();
-                  },
-                ),
+    var notAssignedButtons = [
+      new Container(
+        padding: new EdgeInsets.fromLTRB(75.0, 5.0, 20.0, 5.0),
+        child: new RaisedButton(
+          textColor: Colors.black,
+          child: new Text("Accept".toUpperCase()),
+          onPressed: () {
+            assignPatrol();
+          },
         ),
-        new Container(
+      ),
+      new Container(
+        padding: new EdgeInsets.fromLTRB(5.0, 5.0, 75.0, 5.0),
+        child: new RaisedButton(
+          disabledColor: Colors.black,
+          child: new Text("Reject".toUpperCase()),
+          onPressed: () {
+            //pop back
+            Navigator.popUntil(context, ModalRoute.withName('/'));
+          },
+        ),
+      ),
+    ];
+
+    var assignedButtons = [
+      new Container(
           padding: new EdgeInsets.fromLTRB(5.0, 5.0, 75.0, 5.0),
           child: new RaisedButton(
             disabledColor: Colors.black,
-            child: new Text("Reject".toUpperCase()),
-            onPressed: () {},
-          ),
+            child: new Text("Navigate".toUpperCase()),
+            onPressed: () {
+              String url =
+                  'https://www.google.com/maps/dir/?api=1&destination=' +
+                      widget.helpRequest.latestPosition.latitude +
+                      ',' +
+                      widget.helpRequest.latestPosition.longitude +
+                      '&dir_action=navigate';
+              launch(url);
+            },
+          )),
+      new Container(
+        padding: new EdgeInsets.fromLTRB(5.0, 5.0, 75.0, 5.0),
+        child: new RaisedButton(
+          disabledColor: Colors.black,
+          child: new Text("Cancel".toUpperCase()),
+          onPressed: () {
+            showCancelSPRequestDialog(context, callCancelHelpRequestWs);
+          },
         ),
-      ],
-    );
+      ),
+    ];
+
+    var actionButtons = new Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.max,
+        children: _isAssigned ? assignedButtons : notAssignedButtons);
 
     var mainWrapper = new Column(
       children: [
@@ -73,14 +112,22 @@ class _RequestInfoPageState extends State<RequestInfoPage>
       ],
     );
 
-    return new Scaffold(
-      appBar: new AppBar(
-        title: Common.generateAppTitleBar(),
-      ),
-      body: new Stack(children: [mainWrapper, _progressHUD]),
-      persistentFooterButtons: [actionButtons],
-      // This trailing comma makes auto-formatting nicer for build methods.
-    );
+    return new WillPopScope(
+        onWillPop: () {
+          if (_isAssigned) {
+            showCancelSPRequestDialog(context, callCancelHelpRequestWs);
+          } else {
+            Navigator.popUntil(context, ModalRoute.withName('/'));
+          }
+        },
+        child: new Scaffold(
+          appBar: new AppBar(
+            title: Common.generateAppTitleBar(),
+          ),
+          body: new Stack(children: [mainWrapper, _progressHUD]),
+          persistentFooterButtons: [actionButtons],
+          // This trailing comma makes auto-formatting nicer for build methods.
+        ));
   }
 
   Card buildHelpRequestCard() {
@@ -346,26 +393,95 @@ class _RequestInfoPageState extends State<RequestInfoPage>
   }
 
   void assignPatrol() {
+    //show loading dialog
+    if ((_progressHUD.state != null)) {
+      _progressHUD.state.show();
+    }
+
     Common.getDeviceUID().then((uiD) {
       HelpRequest helpRequest = widget.helpRequest;
       ServiceHelpRequest
-          .assignPatrol(helpRequest.id, Common.myLocation.longitude.toString(),
-              Common.myLocation.latitude.toString(), Common.patrolID, uiD)
+          .assignPatrol(
+              helpRequest.id,
+              Common.myLocation.longitude.toString(),
+              Common.myLocation.latitude.toString(),
+              Common.patrolID,
+              uiD,
+              Common.providerType)
           .then((response) {
+        //dismiss loading dialog
+        if ((_progressHUD.state != null)) {
+          _progressHUD.state.dismiss();
+        }
+
         if (response.statusCode == 200) {
-          //ok
-          print("assignment is ok");
+          Map<String, dynamic> decodedResponse = json.decode(response.body);
+          if (decodedResponse["status"] == true) {
+            //ok
+            print("assignment is ok");
+            _assignmentId = decodedResponse["id"].toString();
+            setState(() {
+              _isAssigned = true;
+            });
+          } else {
+            showDataConnectionError(
+                context, Common.wsUserError + decodedResponse["error"]);
+          }
         } else {
           showDataConnectionError(context, Common.wsUserError);
         }
       }).catchError((e) {
+        //dismiss loading dialog
+        if ((_progressHUD.state != null)) {
+          _progressHUD.state.dismiss();
+        }
         showDataConnectionError(
             context, Common.wsTechnicalError + ": " + e.toString());
       });
     }).catchError((e) {
+      //dismiss loading dialog
+      if ((_progressHUD.state != null)) {
+        _progressHUD.state.dismiss();
+      }
       showDataConnectionError(
           context, Common.wsTechnicalError + ": " + e.toString());
     });
+  }
+
+  //call web service to perform cancellation of help request
+  void callCancelHelpRequestWs() {
+    if (_progressHUD.state != null) {
+      _progressHUD.state.show();
+    }
+
+    ServiceHelpRequest.cancelPatrolAssignment(_assignmentId).then((response) {
+      cancelWsCallback(response);
+    });
+  }
+
+  void cancelWsCallback(http.Response response) {
+    try {
+      if (_progressHUD.state != null) {
+        _progressHUD.state.dismiss();
+      }
+      if (response.statusCode == 200) {
+        Map<String, dynamic> decodedResponse = json.decode(response.body);
+        if (decodedResponse["status"] == true) {
+          //pop back
+          Navigator.popUntil(context, ModalRoute.withName('/'));
+        } else {
+          //show error dialog
+          showDataConnectionError(
+              context, Common.wsUserError, decodedResponse["error"]);
+        }
+      } else {
+        //show error dialog
+        showDataConnectionError(context, Common.wsTechnicalError);
+      }
+    } catch (e) {
+      showDataConnectionError(
+          context, Common.wsTechnicalError + ": " + e.toString());
+    }
   }
 
   /****** Handle activity states **********/
