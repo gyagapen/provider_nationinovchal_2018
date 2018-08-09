@@ -1,7 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:android_alarm_manager/android_alarm_manager.dart';
+import 'dart:isolate';
+import 'dart:async';
 import 'home.dart';
 
-void main() => runApp(new MyApp());
+void printHello() {
+  final DateTime now = new DateTime.now();
+  final int isolateId = Isolate.current.hashCode;
+  print("[$now] Hello, world! isolate=${isolateId} function='$printHello'");
+}
+
+//void main() => runApp(new MyApp());
+Future<Null> main() async  {
+  final int helloAlarmID = 0;
+  runApp(new MyApp());
+  await AndroidAlarmManager.oneShot(const Duration(seconds: 10), helloAlarmID, printHello);
+}
 
 class MyApp extends StatelessWidget {
   // This widget is the root of your application.

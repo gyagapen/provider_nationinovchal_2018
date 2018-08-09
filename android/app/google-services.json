@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "332061940326",
+    "firebase_url": "https://mausafeprovider.firebaseio.com",
+    "project_id": "mausafeprovider",
+    "storage_bucket": "mausafeprovider.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:332061940326:android:54180b1b7aca8ddc",
+        "android_client_info": {
+          "package_name": "com.example.mausafeprovider"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "332061940326-943g214ftlf6nffa5nt9k4b1i4btboou.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCB2ACoWzfsi72T8KkcCXqn4w1-5KuLVzs"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

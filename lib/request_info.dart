@@ -9,6 +9,7 @@ import 'dialogs/dialog_cancel_request.dart';
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
 import 'dart:async';
+import 'package:android_intent/android_intent.dart';
 
 class RequestInfoPage extends StatefulWidget {
   RequestInfoPage({Key key, this.helpRequest, this.patrolAssignmentId})
@@ -53,18 +54,30 @@ class _RequestInfoPageState extends State<RequestInfoPage>
       new Container(
         padding: new EdgeInsets.fromLTRB(75.0, 5.0, 20.0, 5.0),
         child: new RaisedButton(
-          textColor: Colors.black,
-          child: new Text("Accept".toUpperCase()),
+          textColor: Colors.white,
+          color: Colors.green[700],
+          child: new Row(
+            children: [
+              new Icon(Icons.tap_and_play),
+              new Text("ACCEPT".toUpperCase()),
+            ],
+          ),
           onPressed: () {
             assignPatrol();
           },
         ),
       ),
       new Container(
-        padding: new EdgeInsets.fromLTRB(5.0, 5.0, 75.0, 5.0),
+        padding: new EdgeInsets.fromLTRB(5.0, 5.0, 50.0, 5.0),
         child: new RaisedButton(
-          disabledColor: Colors.black,
-          child: new Text("Reject".toUpperCase()),
+          textColor: Colors.white,
+          color: Colors.red[700],
+          child: new Row(
+            children: [
+              new Icon(Icons.error),
+              new Text("REJECT".toUpperCase()),
+            ],
+          ),
           onPressed: () {
             //pop back
             Navigator.popUntil(context, ModalRoute.withName('/'));
@@ -75,36 +88,63 @@ class _RequestInfoPageState extends State<RequestInfoPage>
 
     var assignedButtons = [
       new Container(
-          padding: new EdgeInsets.fromLTRB(5.0, 5.0, 75.0, 5.0),
-          child: new RaisedButton(
-            disabledColor: Colors.black,
-            child: new Text("Navigate".toUpperCase()),
-            onPressed: () {
-              String url =
-                  'https://www.google.com/maps/dir/?api=1&destination=' +
-                      widget.helpRequest.latestPosition.latitude +
-                      ',' +
-                      widget.helpRequest.latestPosition.longitude +
-                      '&dir_action=navigate';
-              launch(url);
-            },
-          )),
-      new Container(
-        padding: new EdgeInsets.fromLTRB(5.0, 5.0, 75.0, 5.0),
+        padding: new EdgeInsets.fromLTRB(5.0, 5.0, 25.0, 5.0),
         child: new RaisedButton(
+          color: Colors.blue,
+          textColor: Colors.white,
           disabledColor: Colors.black,
-          child: new Text("Cancel".toUpperCase()),
+          child: new Row(
+            children: [
+              new Icon(Icons.navigation),
+              new Text("Go".toUpperCase()),
+            ],
+          ),
+          onPressed: () {
+            String url = 'https://www.google.com/maps/dir/?api=1&destination=' +
+                widget.helpRequest.latestPosition.latitude +
+                ',' +
+                widget.helpRequest.latestPosition.longitude +
+                '&dir_action=navigate';
+            launch(url);
+          },
+        ),
+      ),
+      new Container(
+        padding: new EdgeInsets.fromLTRB(5.0, 5.0, 25.0, 5.0),
+        child: new RaisedButton(
+          color: Colors.green,
+          textColor: Colors.white,
+          disabledColor: Colors.black,
+          child: new Row(
+            children: [
+              new Icon(Icons.call),
+              new Text("CALL".toUpperCase()),
+            ],
+          ),
+          onPressed: () {
+            String url = 'tel:59807708';
+            launch(url);
+          },
+        ),
+      ),
+      new Container(
+        padding: new EdgeInsets.fromLTRB(5.0, 5.0, 5.0, 5.0),
+        child: new RaisedButton(
+          color: Colors.red,
+          textColor: Colors.white,
+          disabledColor: Colors.black,
+          child: new Row(
+            children: [
+              new Icon(Icons.cancel),
+              new Text("CANCEL".toUpperCase()),
+            ],
+          ),
           onPressed: () {
             showCancelSPRequestDialog(context, callCancelHelpRequestWs);
           },
         ),
       ),
     ];
-
-    var actionButtons = new Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        mainAxisSize: MainAxisSize.max,
-        children: _isAssigned ? assignedButtons : notAssignedButtons);
 
     var mainWrapper = new Column(
       children: [
@@ -125,7 +165,8 @@ class _RequestInfoPageState extends State<RequestInfoPage>
             title: Common.generateAppTitleBar(),
           ),
           body: new Stack(children: [mainWrapper, _progressHUD]),
-          persistentFooterButtons: [actionButtons],
+          persistentFooterButtons:
+              _isAssigned ? assignedButtons : notAssignedButtons,
           // This trailing comma makes auto-formatting nicer for build methods.
         ));
   }

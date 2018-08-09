@@ -9,6 +9,8 @@ import 'models/help_request.dart';
 import 'helpers/webservice_wrapper.dart';
 import 'dialogs/dialog_error_webservice.dart';
 import 'request_info.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+
 
 class MyHomePage extends StatefulWidget {
   MyHomePage({Key key}) : super(key: key);
@@ -34,8 +36,28 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
   List<HelpRequest> helpRequestDetails = new List<HelpRequest>();
   Timer refreshListTimer;
 
+  FirebaseMessaging _firebaseMessaging = new FirebaseMessaging();
+
   @override
   initState() {
+    //Firebase Push notifs
+    _firebaseMessaging.configure(
+      onMessage: (Map<String, dynamic> message) {
+        print('on message $message');
+      },
+      onResume: (Map<String, dynamic> message) {
+        print('on resume $message');
+      },
+      onLaunch: (Map<String, dynamic> message) {
+        print('on launch $message');
+      },
+    );
+    _firebaseMessaging.requestNotificationPermissions(
+        const IosNotificationSettings(sound: true, badge: true, alert: true));
+    _firebaseMessaging.getToken().then((token) {
+      print("token is"+token);
+    }); 
+
     WidgetsBinding.instance.addObserver(this);
 
     //try to get location

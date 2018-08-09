@@ -14,6 +14,9 @@ dependencies:
   progress_hud: "^1.0.0"
   device_info: "^0.2.1"
   url_launcher: "^3.0.3"
+  firebase_messaging: "^1.0.4"
+  android_alarm_manager: ^0.1.1
+  android_intent: ^0.2.1
 
 
 dev_dependencies:
