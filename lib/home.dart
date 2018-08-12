@@ -10,7 +10,10 @@ import 'helpers/webservice_wrapper.dart';
 import 'dialogs/dialog_error_webservice.dart';
 import 'request_info.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-
+import 'services/service_help_request.dart';
+import 'dart:convert';
+import 'models/Patrol.dart';
+import 'registration.dart';
 
 class MyHomePage extends StatefulWidget {
   MyHomePage({Key key}) : super(key: key);
@@ -32,6 +35,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
   var _currentLocation = <String, double>{};
   bool _dataConnectionAvailable = true;
   bool _gpsPositionAvailable = true;
+  bool _registrationNeeded = false;
   ProgressHUD _progressHUD;
   List<HelpRequest> helpRequestDetails = new List<HelpRequest>();
   Timer refreshListTimer;
@@ -52,16 +56,22 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
         print('on launch $message');
       },
     );
+
+    //register notification
     _firebaseMessaging.requestNotificationPermissions(
         const IosNotificationSettings(sound: true, badge: true, alert: true));
     _firebaseMessaging.getToken().then((token) {
-      print("token is"+token);
-    }); 
+      print("token is" + token);
+      Common.token = token;
+      //check registration
+      checkPatrolRegistration(context);
+    }).catchError((e) {
+      _dataConnectionAvailable = false;
+      showDataConnectionError(
+          context, Common.wsTechnicalError + ": " + e.toString());
+    });
 
     WidgetsBinding.instance.addObserver(this);
-
-    //try to get location
-    getLocalisation(context);
 
     //initiate progress hud
     _progressHUD = new ProgressHUD(
@@ -75,10 +85,19 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
+    print("build widget called");
+
+    if(Common.registrationJustCompleted)
+    {
+      Common.registrationJustCompleted = false;
+      checkPatrolRegistration(context);
+    }
+
     //photo
     var avatarCircle = new Center(
       child: new CircleAvatar(
-        backgroundImage: new AssetImage("images/health.png"),
+        backgroundImage: new AssetImage(
+            Common.getServiceProviderTypeIcon(Common.providerType)),
         backgroundColor: Colors.grey[300],
         radius: 50.0,
       ),
@@ -94,7 +113,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
         children: [
           avatarCircle,
           new Text(
-            'SAMU - Patrol ' + Common.patrolID,
+            Common.providerType + ' - Patrol ' + Common.patrolID,
             style: new TextStyle(fontWeight: FontWeight.bold),
           )
         ],
@@ -140,7 +159,9 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
           child: new RaisedButton(
             child: new Text("Retry"),
             onPressed: () {
-              getPendingHelpRequestFromServer(true);
+              checkPatrolRegistration(context);
+              //getLocalisation(context);
+              //getPendingHelpRequestFromServer(true);
             },
           ),
         )
@@ -461,6 +482,69 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
     );
   }
 
+  /****** Check Patrol registration * *********/
+
+  checkPatrolRegistration(BuildContext context) {
+    //show loading dialog
+    if (_progressHUD.state != null) {
+      _progressHUD.state.show();
+    }
+
+    Common.getDeviceUID().then((uiD) {
+      Common.uID = uiD;
+      ServiceHelpRequest.retrievePatrolRegistration(uiD).then((response) {
+        //dismiss loading dialog
+        if ((_progressHUD.state != null)) {
+          _progressHUD.state.dismiss();
+        }
+
+        if (response.statusCode == 200) {
+          Map<String, dynamic> decodedResponse = json.decode(response.body);
+          if (decodedResponse["status"] == true) {
+            if (decodedResponse["patrol_info"] != null) {
+              //registration already done
+              Patrol patrol =
+                  Patrol.fromJson(decodedResponse["patrol_info"][0]);
+              Common.patrol = patrol;
+              Common.patrolID = patrol.id;
+              Common.providerType = patrol.providerType;
+
+              _registrationNeeded = false;
+
+              //try to get location
+              if (_dataConnectionAvailable) {
+                getLocalisation(context);
+              }
+            } else {
+              _registrationNeeded = true;
+              //route to registration page
+              Navigator.push(
+                context,
+                new MaterialPageRoute(
+                  builder: (context) => new RegistrationPage(),
+                ),
+              );
+            }
+          } else {
+            showDataConnectionError(
+                context, Common.wsUserError + decodedResponse["error"]);
+          }
+        }
+      }).catchError((e) {
+        //dismiss loading dialog
+        if ((_progressHUD.state != null)) {
+          _progressHUD.state.dismiss();
+        }
+        showDataConnectionError(
+            context, Common.wsTechnicalError + ": " + e.toString());
+
+        setState(() {
+          _dataConnectionAvailable = false;
+        });
+      });
+    });
+  }
+
   /****** Handle activity states **********/
 
   @override
@@ -476,8 +560,9 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
       if (state == AppLifecycleState.resumed) {
         if (_dataConnectionAvailable && _gpsPositionAvailable) {
           refreshListTimer.cancel();
-          refreshListTimer = Timer.periodic(Common.refreshListDuration,
-              (Timer t) => getPendingHelpRequestFromServer());
+          /*refreshListTimer = Timer.periodic(Common.refreshListDuration,
+              (Timer t) => getPendingHelpRequestFromServer());*/
+          checkPatrolRegistration(context);
         }
       } else if (state == AppLifecycleState.inactive) {
         if (refreshListTimer != null) {

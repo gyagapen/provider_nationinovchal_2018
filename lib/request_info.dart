@@ -8,8 +8,6 @@ import 'dart:convert';
 import 'dialogs/dialog_cancel_request.dart';
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
-import 'dart:async';
-import 'package:android_intent/android_intent.dart';
 
 class RequestInfoPage extends StatefulWidget {
   RequestInfoPage({Key key, this.helpRequest, this.patrolAssignmentId})
@@ -455,10 +453,10 @@ class _RequestInfoPageState extends State<RequestInfoPage>
           _progressHUD.state.dismiss();
         }
 
-        if (response.statusCode == 200) {
-          Map<String, dynamic> decodedResponse = json.decode(response.body);
-          if (decodedResponse["status"] == true) {
-            //ok
+          if (response.statusCode == 200) {
+            Map<String, dynamic> decodedResponse = json.decode(response.body);
+            if (decodedResponse["status"] == true) {
+              //ok
             print("assignment is ok");
             _assignmentId = decodedResponse["id"].toString();
             setState(() {

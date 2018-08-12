@@ -38,7 +38,7 @@ class ServiceHelpRequest {
     bodyRequest["help_request_id"] = helpRequestId;
     bodyRequest["patrol_id"] = patrolId;
     bodyRequest["longitude"] = longitude;
-    bodyRequest ["latitude"] = latitude;
+    bodyRequest["latitude"] = latitude;
     bodyRequest["device_id"] = deviceId;
     bodyRequest["patrol_type"] = patrolType;
 
@@ -50,10 +50,41 @@ class ServiceHelpRequest {
       String assignmentId) async {
     Map<String, String> bodyRequest = new Map<String, String>();
 
-    bodyRequest["assignment_id"] = assignmentId;  
-
+    bodyRequest["assignment_id"] = assignmentId;
 
     return http.post(serviceBaseUrl + 'Patrol/cancel',
+        headers: generateHeaders(), body: bodyRequest);
+  }
+
+  static Future<http.Response> retrievePatrolRegistration(
+      String deviceId) async {
+    return http.get(
+        serviceBaseUrl + 'Patrol/infoPerDeviceName?device_id=' + deviceId,
+        headers: generateHeaders());
+  }
+
+  static Future<http.Response> registerPatrol(
+      String desc, String deviceId, String token ,String provider) async {
+    Map<String, String> bodyRequest = new Map<String, String>();
+
+    bodyRequest["desc"] = desc;
+    bodyRequest["device_id"] = deviceId;
+    bodyRequest["token"] = token;
+    bodyRequest["provider"] = provider;
+
+    return http.post(serviceBaseUrl + 'Patrol/registerPatrol',
+        headers: generateHeaders(), body: bodyRequest);
+  }
+
+
+  static Future<http.Response> updatePatrolRegistration(
+      String deviceId,String provider) async {
+    Map<String, String> bodyRequest = new Map<String, String>();
+
+    bodyRequest["device_id"] = deviceId;
+    bodyRequest["provider"] = provider;
+
+    return http.post(serviceBaseUrl + 'Patrol/updatePatrolRegistration',
         headers: generateHeaders(), body: bodyRequest);
   }
 }

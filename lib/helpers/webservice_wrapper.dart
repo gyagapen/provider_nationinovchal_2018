@@ -1,8 +1,6 @@
 import 'dart:convert';
 import '../services/service_help_request.dart';
 import '../models/help_request.dart';
-import '../models/assignment_details.dart';
-import '../models/position_object.dart';
 import 'common.dart';
 
 class WebserServiceWrapper {
