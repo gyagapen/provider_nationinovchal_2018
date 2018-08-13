@@ -78,13 +78,26 @@ class ServiceHelpRequest {
 
 
   static Future<http.Response> updatePatrolRegistration(
-      String deviceId,String provider) async {
+      String deviceId,String provider, String desc) async {
     Map<String, String> bodyRequest = new Map<String, String>();
 
     bodyRequest["device_id"] = deviceId;
     bodyRequest["provider"] = provider;
+    bodyRequest["description"] = desc;
 
     return http.post(serviceBaseUrl + 'Patrol/updatePatrolRegistration',
+        headers: generateHeaders(), body: bodyRequest);
+  }
+
+
+  static Future<http.Response> logPatrolArrival(
+      String patrolID, String helpRequestID) async {
+    Map<String, String> bodyRequest = new Map<String, String>();
+
+    bodyRequest["patrol_id"] = patrolID;
+    bodyRequest["help_request_id"] = helpRequestID;
+
+    return http.post(serviceBaseUrl + 'Patrol/logPatrolArrival',
         headers: generateHeaders(), body: bodyRequest);
   }
 }

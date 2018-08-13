@@ -14,6 +14,7 @@ import 'services/service_help_request.dart';
 import 'dart:convert';
 import 'models/Patrol.dart';
 import 'registration.dart';
+import 'drawer.dart';
 
 class MyHomePage extends StatefulWidget {
   MyHomePage({Key key}) : super(key: key);
@@ -87,8 +88,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
   Widget build(BuildContext context) {
     print("build widget called");
 
-    if(Common.registrationJustCompleted)
-    {
+    if (Common.registrationJustCompleted) {
       Common.registrationJustCompleted = false;
       checkPatrolRegistration(context);
     }
@@ -196,6 +196,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
     );
 
     return new Scaffold(
+      drawer: buildDrawer(context),
       appBar: new AppBar(
         title: Common.generateAppTitleBar(),
       ),
@@ -284,7 +285,8 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
         if (firstCall) {
           for (var helpRequest in helpRequestDetails) {
             for (var assignment in helpRequest.assignments) {
-              if (assignment.patrolId == Common.patrolID) {
+              if ((assignment.patrolId == Common.patrolID) &&
+                  (assignment.status == "TRANSIT")) {
                 //go to track info page
                 assignmentFound = true;
                 Navigator.push(
@@ -445,7 +447,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
       var spCard = new Card(
         child: new Container(
           width: 300.0,
-          height: 165.0,
+          height: 177.0,
           child: new Column(children: [
             spNameHeader,
             new Divider(

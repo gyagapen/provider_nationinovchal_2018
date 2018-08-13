@@ -8,6 +8,7 @@ import 'dart:convert';
 import 'dialogs/dialog_cancel_request.dart';
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
+import 'dialogs/dialog_confirm_arrival.dart';
 
 class RequestInfoPage extends StatefulWidget {
   RequestInfoPage({Key key, this.helpRequest, this.patrolAssignmentId})
@@ -86,7 +87,7 @@ class _RequestInfoPageState extends State<RequestInfoPage>
 
     var assignedButtons = [
       new Container(
-        padding: new EdgeInsets.fromLTRB(5.0, 5.0, 25.0, 5.0),
+        padding: new EdgeInsets.fromLTRB(2.0, 5.0, 5.0, 5.0),
         child: new RaisedButton(
           color: Colors.blue,
           textColor: Colors.white,
@@ -108,9 +109,26 @@ class _RequestInfoPageState extends State<RequestInfoPage>
         ),
       ),
       new Container(
-        padding: new EdgeInsets.fromLTRB(5.0, 5.0, 25.0, 5.0),
+        padding: new EdgeInsets.fromLTRB(0.0, 5.0, 5.0, 5.0),
         child: new RaisedButton(
           color: Colors.green,
+          textColor: Colors.white,
+          disabledColor: Colors.black,
+          child: new Row(
+            children: [
+              new Icon(Icons.assistant_photo),
+              new Text("ARRIVED".toUpperCase()),
+            ],
+          ),
+          onPressed: () {
+            showConfirmArrivalDialog(context, callPatrolArrivaltWs);
+          },
+        ),
+      ),
+      new Container(
+        padding: new EdgeInsets.fromLTRB(0.0, 5.0, .0, 5.0),
+        child: new RaisedButton(
+          color: Colors.orange,
           textColor: Colors.white,
           disabledColor: Colors.black,
           child: new Row(
@@ -126,7 +144,7 @@ class _RequestInfoPageState extends State<RequestInfoPage>
         ),
       ),
       new Container(
-        padding: new EdgeInsets.fromLTRB(5.0, 5.0, 5.0, 5.0),
+        padding: new EdgeInsets.fromLTRB(0.0, 5.0, 2.0, 5.0),
         child: new RaisedButton(
           color: Colors.red,
           textColor: Colors.white,
@@ -134,7 +152,7 @@ class _RequestInfoPageState extends State<RequestInfoPage>
           child: new Row(
             children: [
               new Icon(Icons.cancel),
-              new Text("CANCEL".toUpperCase()),
+              //new Text("CANCEL".toUpperCase()),
             ],
           ),
           onPressed: () {
@@ -453,10 +471,10 @@ class _RequestInfoPageState extends State<RequestInfoPage>
           _progressHUD.state.dismiss();
         }
 
-          if (response.statusCode == 200) {
-            Map<String, dynamic> decodedResponse = json.decode(response.body);
-            if (decodedResponse["status"] == true) {
-              //ok
+        if (response.statusCode == 200) {
+          Map<String, dynamic> decodedResponse = json.decode(response.body);
+          if (decodedResponse["status"] == true) {
+            //ok
             print("assignment is ok");
             _assignmentId = decodedResponse["id"].toString();
             setState(() {
@@ -507,6 +525,45 @@ class _RequestInfoPageState extends State<RequestInfoPage>
         Map<String, dynamic> decodedResponse = json.decode(response.body);
         if (decodedResponse["status"] == true) {
           //pop back
+          Navigator.popUntil(context, ModalRoute.withName('/'));
+        } else {
+          //show error dialog
+          showDataConnectionError(
+              context, Common.wsUserError, decodedResponse["error"]);
+        }
+      } else {
+        //show error dialog
+        showDataConnectionError(context, Common.wsTechnicalError);
+      }
+    } catch (e) {
+      showDataConnectionError(
+          context, Common.wsTechnicalError + ": " + e.toString());
+    }
+  }
+
+  //call web service to log arrival of patrol
+  void callPatrolArrivaltWs() {
+    if (_progressHUD.state != null) {
+      _progressHUD.state.show();
+    }
+
+    ServiceHelpRequest
+        .logPatrolArrival(Common.patrol.id, widget.helpRequest.id)
+        .then((response) {
+      logPatrolArrivalCallback(response);
+    });
+  }
+
+  void logPatrolArrivalCallback(http.Response response) {
+    try {
+      if (_progressHUD.state != null) {
+        _progressHUD.state.dismiss();
+      }
+      if (response.statusCode == 200) {
+        Map<String, dynamic> decodedResponse = json.decode(response.body);
+        if (decodedResponse["status"] == true) {
+          //pop back
+          Common.registrationJustCompleted = true;
           Navigator.popUntil(context, ModalRoute.withName('/'));
         } else {
           //show error dialog
