@@ -34,6 +34,8 @@ class _RequestInfoPageState extends State<RequestInfoPage>
     if (widget.patrolAssignmentId != "") {
       _isAssigned = true;
       _assignmentId = widget.patrolAssignmentId;
+
+      Common.startMausafeService();
     }
 
     //initiate progress hud
@@ -479,6 +481,7 @@ class _RequestInfoPageState extends State<RequestInfoPage>
             _assignmentId = decodedResponse["id"].toString();
             setState(() {
               _isAssigned = true;
+              Common.startMausafeService();
             });
           } else {
             showDataConnectionError(

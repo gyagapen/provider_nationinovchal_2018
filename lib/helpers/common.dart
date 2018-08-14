@@ -4,6 +4,7 @@ import 'dart:async';
 import 'package:device_info/device_info.dart';
 import 'package:flutter/services.dart' show PlatformException;
 import '../models/Patrol.dart';
+import 'package:flutter/services.dart';
 
 class Common {
   static CustomLocation myLocation = new CustomLocation();
@@ -78,5 +79,15 @@ class Common {
     }
 
     return imageProviderType;
+  }
+
+  static Future<Null> startMausafeService() async {
+    const platform = const MethodChannel('buildflutter.com/platform');
+    int result = 0;
+    try {
+      result = await platform.invokeMethod('startMausafeService');
+    } on PlatformException catch (e) {
+      result = 0;
+    }
   }
 }
