@@ -35,7 +35,7 @@ class _RequestInfoPageState extends State<RequestInfoPage>
       _isAssigned = true;
       _assignmentId = widget.patrolAssignmentId;
 
-      Common.startMausafeService();
+      Common.startMausafeService(widget.helpRequest.id);
     }
 
     //initiate progress hud
@@ -481,7 +481,7 @@ class _RequestInfoPageState extends State<RequestInfoPage>
             _assignmentId = decodedResponse["id"].toString();
             setState(() {
               _isAssigned = true;
-              Common.startMausafeService();
+              Common.startMausafeService(widget.helpRequest.id);
             });
           } else {
             showDataConnectionError(
@@ -527,6 +527,9 @@ class _RequestInfoPageState extends State<RequestInfoPage>
       if (response.statusCode == 200) {
         Map<String, dynamic> decodedResponse = json.decode(response.body);
         if (decodedResponse["status"] == true) {
+          //stop service
+          Common.stopMausafeService();
+
           //pop back
           Navigator.popUntil(context, ModalRoute.withName('/'));
         } else {
@@ -565,6 +568,9 @@ class _RequestInfoPageState extends State<RequestInfoPage>
       if (response.statusCode == 200) {
         Map<String, dynamic> decodedResponse = json.decode(response.body);
         if (decodedResponse["status"] == true) {
+          //stop service
+          Common.stopMausafeService();
+
           //pop back
           Common.registrationJustCompleted = true;
           Navigator.popUntil(context, ModalRoute.withName('/'));

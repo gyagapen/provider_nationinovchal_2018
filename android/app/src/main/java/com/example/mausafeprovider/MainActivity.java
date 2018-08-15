@@ -24,12 +24,33 @@ public class MainActivity extends FlutterActivity {
             public void onMethodCall(MethodCall call, Result result) {
                 if (call.method.equals("startMausafeService"))
                 {
+
+                  //retrieve parameters
+                  String patrolId = call.argument("patrolId");
+                  String helprequestId = call.argument("helprequestId");
+                  String intervalLocation = call.argument("intervalLocation");
+                  String urlEndPoint = call.argument("urlEndPoint");
+                  String xApiKey = call.argument("xApiKey");
+
                   //start mausafe service
                   Intent i = new Intent();
-                  i.setComponent(new ComponentName("gyagapen.testservice", "gyagapen.testservice.TestService"));
+                  i.setComponent(new ComponentName("gyagapen.testservice", "gyagapen.testservice.MausafeService"));
+
+                  i.putExtra("patrolId", patrolId);
+                  i.putExtra("helprequestId",helprequestId);
+                  i.putExtra("intervalLocation", intervalLocation);
+                  i.putExtra("urlEndPoint", urlEndPoint);
+                  i.putExtra("xApiKey",xApiKey);
+
                   ComponentName c = getApplicationContext().startService(i);
 
                   result.success(5);
+                }else if (call.method.equals("stopMausafeService"))
+                {
+                  //stop mausafe service
+                  Intent i = new Intent();
+                  i.setComponent(new ComponentName("gyagapen.testservice", "gyagapen.testservice.MausafeService"));
+                  getApplicationContext().stopService(i);
                 }
             }
           });

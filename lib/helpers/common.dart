@@ -5,6 +5,7 @@ import 'package:device_info/device_info.dart';
 import 'package:flutter/services.dart' show PlatformException;
 import '../models/Patrol.dart';
 import 'package:flutter/services.dart';
+import '../services/service_help_request.dart';
 
 class Common {
   static CustomLocation myLocation = new CustomLocation();
@@ -19,6 +20,9 @@ class Common {
   static bool registrationJustCompleted = false;
 
   static String providerType = "SAMU";
+
+  //frequency in ms to send updated location of patrol to server
+  static String sendLocationIntervalMs = "60000";
 
   static Duration refreshListDuration = new Duration(seconds: 15);
 
@@ -81,11 +85,28 @@ class Common {
     return imageProviderType;
   }
 
-  static Future<Null> startMausafeService() async {
+  static Future<Null> startMausafeService(String helpRequestId) async {
     const platform = const MethodChannel('buildflutter.com/platform');
     int result = 0;
     try {
-      result = await platform.invokeMethod('startMausafeService');
+      result = await platform.invokeMethod('startMausafeService', {
+        "patrolId": Common.patrolID,
+        "helprequestId": helpRequestId,
+        "intervalLocation": sendLocationIntervalMs,
+        "urlEndPoint":
+            ServiceHelpRequest.serviceBaseUrl + "Patrol/updatePatrolPosition",
+        "xApiKey": ServiceHelpRequest.apiKey
+      });
+    } on PlatformException catch (e) {
+      result = 0;
+    }
+  }
+
+  static Future<Null> stopMausafeService() async {
+    const platform = const MethodChannel('buildflutter.com/platform');
+    int result = 0;
+    try {
+      result = await platform.invokeMethod('stopMausafeService');
     } on PlatformException catch (e) {
       result = 0;
     }
