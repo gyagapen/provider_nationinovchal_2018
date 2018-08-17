@@ -21,6 +21,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
   List<String> _providerTypes = ['SAMU', 'POLICE', 'FIREMAN'];
   String _providerType = 'SAMU';
   String _desc = '';
+  String _number = '';
 
   @override
   initState() {
@@ -78,6 +79,29 @@ class _RegistrationPageState extends State<RegistrationPage> {
                 hintText: 'Provide a short description',
                 hintStyle: new TextStyle(fontStyle: FontStyle.italic),
                 labelText: 'Description',
+                labelStyle: new TextStyle(fontSize: 20.0),
+              ),
+            ),
+          ),
+          //Mobile number
+          new Container(
+            margin: new EdgeInsets.fromLTRB(20.0, 5.0, 5.0, 15.0),
+            child: new TextFormField(
+              validator: (value) {
+                if (value.isEmpty) {
+                  return 'Please enter some text';
+                }
+
+                if (value.length != 8) {
+                  return 'Mobile number should contain 8 digits';
+                }
+              },
+              onSaved: (val) => _number = val,
+              keyboardType: TextInputType.phone,
+              decoration: new InputDecoration(
+                hintText: 'Provide a mobile number',
+                hintStyle: new TextStyle(fontStyle: FontStyle.italic),
+                labelText: 'Mobile number',
                 labelStyle: new TextStyle(fontSize: 20.0),
               ),
             ),
@@ -228,7 +252,8 @@ class _RegistrationPageState extends State<RegistrationPage> {
 
       //submit to server
       ServiceHelpRequest
-          .registerPatrol(_desc, Common.uID, Common.token, _providerType)
+          .registerPatrol(
+              _desc, Common.uID, Common.token, _providerType, _number)
           .then((response) {
         //dismiss loading dialog
         if ((_progressHUD.state != null)) {

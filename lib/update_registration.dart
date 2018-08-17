@@ -22,6 +22,7 @@ class _UpdateRegistrationPageState extends State<UpdateRegistrationPage> {
   List<String> _providerTypes = ['SAMU', 'POLICE', 'FIREMAN'];
   String _providerType = Common.patrol.providerType;
   String _desc = '';
+  String _number = '';
 
   @override
   initState() {
@@ -38,8 +39,6 @@ class _UpdateRegistrationPageState extends State<UpdateRegistrationPage> {
 
   @override
   Widget build(BuildContext context) {
-
-
     var title = new Container(
         margin: new EdgeInsets.fromLTRB(75.0, 20.0, 45.0, 5.0),
         child: new Text(
@@ -82,6 +81,30 @@ class _UpdateRegistrationPageState extends State<UpdateRegistrationPage> {
                 hintText: 'Provide a short description',
                 hintStyle: new TextStyle(fontStyle: FontStyle.italic),
                 labelText: 'Description',
+                labelStyle: new TextStyle(fontSize: 20.0),
+              ),
+            ),
+          ),
+          //Mobile number
+          new Container(
+            margin: new EdgeInsets.fromLTRB(20.0, 5.0, 5.0, 15.0),
+            child: new TextFormField(
+              validator: (value) {
+                if (value.isEmpty) {
+                  return 'Please enter some text';
+                }
+
+                if (value.length != 8) {
+                  return 'Mobile number should contain 8 digits';
+                }
+              },
+              initialValue: Common.patrol.mobileNumber,
+              onSaved: (val) => _number = val,
+              keyboardType: TextInputType.phone,
+              decoration: new InputDecoration(
+                hintText: 'Provide a mobile number',
+                hintStyle: new TextStyle(fontStyle: FontStyle.italic),
+                labelText: 'Mobile number',
                 labelStyle: new TextStyle(fontSize: 20.0),
               ),
             ),
@@ -232,7 +255,7 @@ class _UpdateRegistrationPageState extends State<UpdateRegistrationPage> {
 
       //submit to server
       ServiceHelpRequest
-          .updatePatrolRegistration(Common.uID, _providerType, _desc)
+          .updatePatrolRegistration(Common.uID, _providerType, _desc, _number)
           .then((response) {
         //dismiss loading dialog
         if ((_progressHUD.state != null)) {

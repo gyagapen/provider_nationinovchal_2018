@@ -37,6 +37,8 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
   bool _dataConnectionAvailable = true;
   bool _gpsPositionAvailable = true;
   bool _registrationNeeded = false;
+  bool _pendingHelpRequest = false;
+
   ProgressHUD _progressHUD;
   List<HelpRequest> helpRequestDetails = new List<HelpRequest>();
   Timer refreshListTimer;
@@ -120,6 +122,26 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
       ),
     );
 
+    //waiting gif
+    var waitingRequestGif = new Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      mainAxisSize: MainAxisSize.max,
+      children: [
+        new Container(
+          padding: new EdgeInsets.fromLTRB(5.0, 100.0, 5.0, 5.0),
+          child: new Image(
+            image: new AssetImage("images/google_anim2.gif"),
+            width: 200.0,
+            height: 200.0,
+          ),
+        ),
+        new Container(
+          padding: new EdgeInsets.fromLTRB(5.0, 10.0, 5.0, 5.0),
+          child: new Text("Waiting for assignment"),
+        ),
+      ],
+    );
+
     var gpsErrorRetryWrapper = new Column(
       children: [
         nameHeader,
@@ -168,6 +190,11 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
       ],
     );
 
+    var spContent = 
+      new Expanded(
+        child: buildHelpRequestList(),
+      );
+
     var mainWrapper = new Column(
       children: [
         nameHeader,
@@ -189,9 +216,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
             },
           ),
         ),
-        new Expanded(
-          child: buildHelpRequestList(),
-        )
+        _pendingHelpRequest ? spContent : waitingRequestGif
       ],
     );
 
@@ -277,10 +302,10 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
 
       var assignmentFound = false;
 
-      if (helpRequestList != null) {
+      if ((helpRequestList != null) && (helpRequestList.length > 0)) {
         //populate list of help
         helpRequestDetails = helpRequestList;
-
+        print("help request found");
         //check if any request assigned
         if (firstCall) {
           for (var helpRequest in helpRequestDetails) {
@@ -307,8 +332,15 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
             }
           }
         }
+
+        setState(() {
+          _pendingHelpRequest = true;
+        });
       } else {
         print("No pending request");
+        setState(() {
+          _pendingHelpRequest = false;
+        });
       }
 
       refreshListTimer = Timer.periodic(Common.refreshListDuration,
@@ -334,6 +366,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
     List<Widget> listOfHelpRequest = new List<Widget>();
 
     for (int i = 0; i < helpRequestDetails.length; i++) {
+      print("help request process");
       HelpRequest helpRequest = helpRequestDetails.elementAt(i);
 
       //build help request cards

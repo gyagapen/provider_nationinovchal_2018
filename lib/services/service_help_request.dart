@@ -3,7 +3,7 @@ import 'dart:async';
 
 class ServiceHelpRequest {
   //static String serviceBaseUrl = "http://aroma.mu/webservices/mausafe/index.php/";
-  static String serviceBaseUrl = "http://192.168.0.106:8083/mausafe/index.php/";
+  static String serviceBaseUrl = "http://192.168.0.105:8083/mausafe/index.php/";
   static String apiKey = "58eb50e1-f87b-44a7-a4be-dcccd71625eb";
 
   static Map<String, String> generateHeaders() {
@@ -63,32 +63,32 @@ class ServiceHelpRequest {
         headers: generateHeaders());
   }
 
-  static Future<http.Response> registerPatrol(
-      String desc, String deviceId, String token ,String provider) async {
+  static Future<http.Response> registerPatrol(String desc, String deviceId,
+      String token, String provider, String mobileNumber) async {
     Map<String, String> bodyRequest = new Map<String, String>();
 
     bodyRequest["desc"] = desc;
     bodyRequest["device_id"] = deviceId;
     bodyRequest["token"] = token;
     bodyRequest["provider"] = provider;
+    bodyRequest["mobile_number"] = mobileNumber;
 
     return http.post(serviceBaseUrl + 'Patrol/registerPatrol',
         headers: generateHeaders(), body: bodyRequest);
   }
 
-
-  static Future<http.Response> updatePatrolRegistration(
-      String deviceId,String provider, String desc) async {
+  static Future<http.Response> updatePatrolRegistration(String deviceId,
+      String provider, String desc, String mobileNumber) async {
     Map<String, String> bodyRequest = new Map<String, String>();
 
     bodyRequest["device_id"] = deviceId;
     bodyRequest["provider"] = provider;
     bodyRequest["description"] = desc;
+    bodyRequest["mobile_number"] = mobileNumber;
 
     return http.post(serviceBaseUrl + 'Patrol/updatePatrolRegistration',
         headers: generateHeaders(), body: bodyRequest);
   }
-
 
   static Future<http.Response> logPatrolArrival(
       String patrolID, String helpRequestID) async {
