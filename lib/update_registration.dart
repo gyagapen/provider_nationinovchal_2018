@@ -4,7 +4,6 @@ import 'package:progress_hud/progress_hud.dart';
 import 'services/service_help_request.dart';
 import 'dialogs/dialog_error_webservice.dart';
 import 'dart:convert';
-import 'dialogs/dialog_quit_app.dart';
 
 class UpdateRegistrationPage extends StatefulWidget {
   UpdateRegistrationPage({Key key}) : super(key: key);
@@ -222,7 +221,7 @@ class _UpdateRegistrationPageState extends State<UpdateRegistrationPage> {
 
     return new WillPopScope(
         onWillPop: () {
-          showQuitApptDialog(context);
+          Navigator.popUntil(context, ModalRoute.withName('/'));
         },
         child: new Scaffold(
           key: _scaffoldKey,

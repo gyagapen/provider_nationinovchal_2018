@@ -15,6 +15,10 @@ import 'dart:convert';
 import 'models/Patrol.dart';
 import 'registration.dart';
 import 'drawer.dart';
+import 'dialogs/dialog_assignment_error.dart';
+import 'package:flutter/services.dart';
+import 'animations/waiting_text_animation.dart';
+import 'package:flutter/animation.dart';
 
 class MyHomePage extends StatefulWidget {
   MyHomePage({Key key}) : super(key: key);
@@ -32,7 +36,8 @@ class MyHomePage extends StatefulWidget {
   _MyHomePageState createState() => new _MyHomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
+class _MyHomePageState extends State<MyHomePage>
+    with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   var _currentLocation = <String, double>{};
   bool _dataConnectionAvailable = true;
   bool _gpsPositionAvailable = true;
@@ -45,12 +50,22 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
 
   FirebaseMessaging _firebaseMessaging = new FirebaseMessaging();
 
+  AnimationController controller;
+  Animation<double> animation;
+
   @override
   initState() {
     //Firebase Push notifs
     _firebaseMessaging.configure(
       onMessage: (Map<String, dynamic> message) {
         print('on message $message');
+
+        //play sound
+        SystemSound.play(SystemSoundType.click);
+
+        if (message["title"] == "CANCELLATION") {
+          showAssignmentErrorDialog(context, Common.assigmentCancellationMsg);
+        }
       },
       onResume: (Map<String, dynamic> message) {
         print('on resume $message');
@@ -84,6 +99,22 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
       borderRadius: 5.0,
       text: 'Loading...',
     );
+
+    //animation
+    controller = new AnimationController(
+        duration: const Duration(milliseconds: 1000), vsync: this);
+    animation = new Tween(begin: 0.0, end: 100.0).animate(controller);
+
+    animation.addStatusListener((status) {
+      if (status == AnimationStatus.completed) {
+        controller.reverse();
+      } else if (status == AnimationStatus.dismissed) {
+        controller.forward();
+      }
+    });
+
+    //launch animation
+    controller.forward();
   }
 
   @override
@@ -128,16 +159,18 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
       mainAxisSize: MainAxisSize.max,
       children: [
         new Container(
-          padding: new EdgeInsets.fromLTRB(5.0, 100.0, 5.0, 5.0),
+          padding: new EdgeInsets.fromLTRB(5.0, 30.0, 5.0, 5.0),
           child: new Image(
-            image: new AssetImage("images/google_anim2.gif"),
+            image: new AssetImage("images/double_ring.gif"),
             width: 200.0,
             height: 200.0,
           ),
         ),
         new Container(
           padding: new EdgeInsets.fromLTRB(5.0, 10.0, 5.0, 5.0),
-          child: new Text("Waiting for assignment"),
+          child: new AnimatedWaitingText(
+            animation: animation,
+          ),
         ),
       ],
     );
@@ -190,10 +223,9 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
       ],
     );
 
-    var spContent = 
-      new Expanded(
-        child: buildHelpRequestList(),
-      );
+    var spContent = new Expanded(
+      child: buildHelpRequestList(),
+    );
 
     var mainWrapper = new Column(
       children: [
@@ -305,6 +337,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
       if ((helpRequestList != null) && (helpRequestList.length > 0)) {
         //populate list of help
         helpRequestDetails = helpRequestList;
+        Common.helpRequestList = helpRequestList;
         print("help request found");
         //check if any request assigned
         if (firstCall) {

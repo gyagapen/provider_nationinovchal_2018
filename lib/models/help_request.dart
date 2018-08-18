@@ -34,8 +34,10 @@ class HelpRequest {
       this.eventIcon});
 
   factory HelpRequest.fromJson(Map<String, dynamic> json) {
-    PositionObject positionObject =
-        PositionObject.fromJson(json['latest_position']);
+    PositionObject positionObject;
+    if (json['latest_position'] != null) {
+      positionObject = PositionObject.fromJson(json['latest_position']);
+    }
 
     List<AssignmentDetails> assignmentDetails = new List<AssignmentDetails>();
     if (json['assignment_details'] != null) {

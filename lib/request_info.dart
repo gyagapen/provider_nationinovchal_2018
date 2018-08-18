@@ -9,6 +9,10 @@ import 'dialogs/dialog_cancel_request.dart';
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
 import 'dialogs/dialog_confirm_arrival.dart';
+import 'dart:async';
+import 'dialogs/dialog_assignment_error.dart';
+import 'services/service_help_request.dart';
+import 'dialogs/dialog_error_webservice.dart';
 
 class RequestInfoPage extends StatefulWidget {
   RequestInfoPage({Key key, this.helpRequest, this.patrolAssignmentId})
@@ -26,10 +30,15 @@ class _RequestInfoPageState extends State<RequestInfoPage>
   ProgressHUD _progressHUD;
   bool _isAssigned = false;
   String _assignmentId = "";
+  HelpRequest widgetHelpRequest;
+
+  Timer refreshInfoTimer;
 
   @override
   initState() {
     WidgetsBinding.instance.addObserver(this);
+
+    widgetHelpRequest = widget.helpRequest;
 
     if (widget.patrolAssignmentId != "") {
       _isAssigned = true;
@@ -47,6 +56,10 @@ class _RequestInfoPageState extends State<RequestInfoPage>
       text: 'Loading...',
       loading: false,
     );
+
+    //setup refresh info timer
+    refreshInfoTimer =
+        Timer.periodic(Common.refreshListDuration, (Timer t) => refreshInfo());
   }
 
   @override
@@ -102,9 +115,9 @@ class _RequestInfoPageState extends State<RequestInfoPage>
           ),
           onPressed: () {
             String url = 'https://www.google.com/maps/dir/?api=1&destination=' +
-                widget.helpRequest.latestPosition.latitude +
+                widgetHelpRequest.latestPosition.latitude +
                 ',' +
-                widget.helpRequest.latestPosition.longitude +
+                widgetHelpRequest.latestPosition.longitude +
                 '&dir_action=navigate';
             launch(url);
           },
@@ -458,7 +471,7 @@ class _RequestInfoPageState extends State<RequestInfoPage>
     }
 
     Common.getDeviceUID().then((uiD) {
-      HelpRequest helpRequest = widget.helpRequest;
+      HelpRequest helpRequest = widgetHelpRequest;
       ServiceHelpRequest
           .assignPatrol(
               helpRequest.id,
@@ -589,6 +602,77 @@ class _RequestInfoPageState extends State<RequestInfoPage>
     }
   }
 
+  //fetch latest info and manage cancellation/other assignment
+  void refreshInfo() {
+    print('call refresh Info');
+
+    //call service
+    ServiceHelpRequest
+        .retrieveHelpRequest(widgetHelpRequest.id)
+        .then((response) {
+      if (response.statusCode == 200) {
+        Map<String, dynamic> decodedResponse = json.decode(response.body);
+        if (decodedResponse["status"] == true) {
+          if (decodedResponse["help_details"] == null) {
+            //no pending help request
+
+          } else {
+            //build list of help request
+            //for (var helpRequestJson in decodedResponse["help_details"]) {
+            HelpRequest helpRequest =
+                HelpRequest.fromJson(decodedResponse["help_details"]);
+
+            bool assignmentOk = true;
+            if (helpRequest.id == widgetHelpRequest.id) {
+              //check if cancelled
+              if (helpRequest.status == "CANCELLED") {
+                showAssignmentErrorDialog(
+                    context, Common.assigmentCancellationMsg);
+                assignmentOk = false;
+              }
+
+              //check if not reassigned
+              if (helpRequest.assignments != null) {
+                for (var assignment in helpRequest.assignments) {
+                  if (assignment.serviceProviderType ==
+                      Common.patrol.providerType) {
+                    if (assignment.patrolId != Common.patrol.id) {
+                      //assigned to another patrol
+                      showAssignmentErrorDialog(
+                          context, Common.assigmentAlreadyTakenMsg);
+                      assignmentOk = false;
+                    }
+                  }
+                }
+
+                if (assignmentOk) {
+                  //refresh location position
+                  for (var commonHr in Common.helpRequestList) {
+                    if (widgetHelpRequest.id == commonHr.id) {
+                      setState(() {
+                        widgetHelpRequest = commonHr;
+                      });
+                    }
+                  }
+                }
+              } else {
+                //issue with assignment
+                showAssignmentErrorDialog(context, Common.assigmentError);
+              }
+            }
+            //}
+          }
+        } else {
+          showDataConnectionError(
+              context, Common.wsUserError + decodedResponse["error"]);
+        }
+      }
+    }).catchError((e) {
+      showDataConnectionError(
+          context, Common.wsTechnicalError + ": " + e.toString());
+    });
+  }
+
   /****** Handle activity states **********/
 
   @override
@@ -598,7 +682,19 @@ class _RequestInfoPageState extends State<RequestInfoPage>
   }
 
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    print("state has changed: " + state.toString());
-    setState(() {});
+    print("state has changed - request info: " + state.toString());
+
+    setState(() {
+      if (state == AppLifecycleState.resumed) {
+        refreshInfoTimer.cancel();
+        //setup refresh info timer
+        refreshInfoTimer = Timer.periodic(
+            Common.refreshListDuration, (Timer t) => refreshInfo());
+      } else if (state == AppLifecycleState.inactive) {
+        if (refreshInfoTimer != null) {
+          refreshInfoTimer.cancel();
+        }
+      }
+    });
   }
 }

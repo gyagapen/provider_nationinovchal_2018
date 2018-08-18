@@ -58,6 +58,7 @@ flutter:
   - images/thief.png
   - images/track_me.png
   - images/google_anim2.gif
+  - images/double_ring.gif
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.io/assets-and-images/#resolution-aware.

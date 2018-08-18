@@ -6,6 +6,7 @@ import 'package:flutter/services.dart' show PlatformException;
 import '../models/Patrol.dart';
 import 'package:flutter/services.dart';
 import '../services/service_help_request.dart';
+import '../models/help_request.dart';
 
 class Common {
   static CustomLocation myLocation = new CustomLocation();
@@ -13,11 +14,18 @@ class Common {
       "Cannot contact MauSafe servers. Kindly ensure that you are connected to internet";
   static String wsUserError =
       "Error while sending request to MauSafe servers. Error Details: ";
+  static String assigmentCancellationMsg =
+      "Assignment has been cancelled by the requestor";
+  static String assigmentAlreadyTakenMsg =
+      "This request has been assigned to another patrol";
+  static String assigmentError =
+      "There has been a server error. Please contact Mausafe";
 
   static Patrol patrol;
   static String token;
   static String uID;
   static bool registrationJustCompleted = false;
+  static List<HelpRequest> helpRequestList = new List<HelpRequest>();
 
   static String providerType = "SAMU";
 
