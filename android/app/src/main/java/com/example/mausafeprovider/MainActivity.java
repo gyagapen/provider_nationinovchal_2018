@@ -10,6 +10,7 @@ import io.flutter.plugin.common.MethodChannel.MethodCallHandler;
 import io.flutter.plugin.common.MethodChannel.Result;
 import android.content.ComponentName;
 import android.content.Intent;
+import android.support.v4.content.ContextCompat;
 
 public class MainActivity extends FlutterActivity {
   @Override
@@ -42,7 +43,7 @@ public class MainActivity extends FlutterActivity {
                   i.putExtra("urlEndPoint", urlEndPoint);
                   i.putExtra("xApiKey",xApiKey);
 
-                  ComponentName c = getApplicationContext().startService(i);
+                  ContextCompat.startForegroundService(getApplicationContext(), i);
 
                   result.success(5);
                 }else if (call.method.equals("stopMausafeService"))

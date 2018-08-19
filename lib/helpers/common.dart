@@ -30,7 +30,7 @@ class Common {
   static String providerType = "SAMU";
 
   //frequency in ms to send updated location of patrol to server
-  static String sendLocationIntervalMs = "60000";
+  static String sendLocationIntervalMs = "5000";
 
   static Duration refreshListDuration = new Duration(seconds: 15);
 
