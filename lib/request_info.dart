@@ -31,6 +31,7 @@ class _RequestInfoPageState extends State<RequestInfoPage>
   bool _isAssigned = false;
   String _assignmentId = "";
   HelpRequest widgetHelpRequest;
+  bool _launchService = true;
 
   Timer refreshInfoTimer;
 
@@ -44,7 +45,9 @@ class _RequestInfoPageState extends State<RequestInfoPage>
       _isAssigned = true;
       _assignmentId = widget.patrolAssignmentId;
 
-      Common.startMausafeService(widget.helpRequest.id);
+      if (_launchService) {
+        Common.startMausafeService(widget.helpRequest.id);
+      }
     }
 
     //initiate progress hud
@@ -684,17 +687,19 @@ class _RequestInfoPageState extends State<RequestInfoPage>
   void didChangeAppLifecycleState(AppLifecycleState state) {
     print("state has changed - request info: " + state.toString());
 
-    setState(() {
-      if (state == AppLifecycleState.resumed) {
+    //setState(() {
+
+    if (state == AppLifecycleState.resumed) {
+      _launchService = false;
+      refreshInfoTimer.cancel();
+      //setup refresh info timer
+      refreshInfoTimer = Timer.periodic(
+          Common.refreshListDuration, (Timer t) => refreshInfo());
+    } else if (state == AppLifecycleState.inactive) {
+      if (refreshInfoTimer != null) {
         refreshInfoTimer.cancel();
-        //setup refresh info timer
-        refreshInfoTimer = Timer.periodic(
-            Common.refreshListDuration, (Timer t) => refreshInfo());
-      } else if (state == AppLifecycleState.inactive) {
-        if (refreshInfoTimer != null) {
-          refreshInfoTimer.cancel();
-        }
       }
-    });
+    }
+    //});
   }
 }
