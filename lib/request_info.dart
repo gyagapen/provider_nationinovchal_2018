@@ -181,6 +181,8 @@ class _RequestInfoPageState extends State<RequestInfoPage>
     ];
 
     var mainWrapper = new Column(
+      mainAxisAlignment: MainAxisAlignment.start,
+      mainAxisSize: MainAxisSize.max,
       children: [
         buildHelpRequestCard(),
       ],
@@ -370,7 +372,7 @@ class _RequestInfoPageState extends State<RequestInfoPage>
 
     var spLocationContent = new Column(
         mainAxisAlignment: MainAxisAlignment.center,
-        mainAxisSize: MainAxisSize.min,
+        mainAxisSize: MainAxisSize.max,
         children: [
           new Column(children: [
             //Title
@@ -449,7 +451,7 @@ class _RequestInfoPageState extends State<RequestInfoPage>
     var spCard = new Card(
         margin: new EdgeInsets.fromLTRB(0.0, 25.0, 0.0, 0.0),
         child: new Container(
-          width: 350.0,
+          width: 450.0,
           height: 450.0,
           child: new Column(children: [
             spNameHeader,

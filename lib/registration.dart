@@ -5,6 +5,8 @@ import 'services/service_help_request.dart';
 import 'dialogs/dialog_error_webservice.dart';
 import 'dart:convert';
 import 'dialogs/dialog_quit_app.dart';
+import 'models/station.dart';
+import 'helpers/webservice_wrapper.dart';
 
 class RegistrationPage extends StatefulWidget {
   RegistrationPage({Key key}) : super(key: key);
@@ -22,6 +24,9 @@ class _RegistrationPageState extends State<RegistrationPage> {
   String _providerType = 'SAMU';
   String _desc = '';
   String _number = '';
+
+  List<Station> _stations = new List<Station>();
+  String _selectedStationId = "0";
 
   @override
   initState() {
@@ -59,6 +64,31 @@ class _RegistrationPageState extends State<RegistrationPage> {
             fontSize: 15.0,
           ),
         ));
+
+    var stationDropdown = new Container(
+            margin: new EdgeInsets.fromLTRB(20.0, 5.0, 5.0, 15.0),
+            child: new InputDecorator(
+              decoration: new InputDecoration(
+                labelText: 'Station',
+                labelStyle: new TextStyle(fontSize: 20.0),
+              ),
+              child: DropdownButtonHideUnderline(
+                child: DropdownButton(
+                    items: _stations.map((station) {
+                      return new DropdownMenuItem<String>(
+                        value: station.id,
+                        child: new Text(station.name),
+                      );
+                    }).toList(),
+                    value: _selectedStationId,
+                    onChanged: (newValue) {
+                      setState(() {
+                        _selectedStationId = newValue;
+                      });
+                    }),
+              ),
+            ),
+          );
 
     var form = new Form(
       key: _formKey,
@@ -126,12 +156,15 @@ class _RegistrationPageState extends State<RegistrationPage> {
                     value: _providerType,
                     onChanged: (newValue) {
                       setState(() {
+                        getStations(newValue);
                         _providerType = newValue;
                       });
                     }),
               ),
             ),
           ),
+          //station list
+          (_stations ==null ||_stations.length == 0) ? new Container() : stationDropdown,
           //Token
           new Container(
             margin: new EdgeInsets.fromLTRB(20.0, 5.0, 5.0, 15.0),
@@ -237,6 +270,43 @@ class _RegistrationPageState extends State<RegistrationPage> {
         new SnackBar(backgroundColor: color, content: new Text(message)));
   }
 
+  void getStations(String providerType)
+  {
+    //show loading progress
+      if ((_progressHUD.state != null)) {
+        _progressHUD.state.show();
+      }
+      WebserServiceWrapper.getStations(providerType, getStationCallCompleted);
+  }
+
+  void getStationCallCompleted(List<Station> stationList, Exception ex)
+  {
+    //dismiss loading dialog
+    if ((_progressHUD.state != null)) {
+      _progressHUD.state.dismiss();
+    }
+
+    if(stationList != null){
+      setState(() {
+        if(stationList.length > 0){
+          _selectedStationId = stationList.elementAt(0).id;
+        } else{
+          _selectedStationId = "0";
+        }
+        _stations = stationList;  
+      });
+    } else {
+        if(ex != null) {
+             showDataConnectionError(
+            context, Common.wsTechnicalError + ": " + ex.toString());
+        } else {
+            showDataConnectionError(context, Common.wsUserError);
+        }
+    }
+
+    
+  }
+
   void _submitForm() {
     final FormState form = _formKey.currentState;
 
@@ -253,7 +323,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
       //submit to server
       ServiceHelpRequest
           .registerPatrol(
-              _desc, Common.uID, Common.token, _providerType, _number)
+              _desc, Common.uID, Common.token, _providerType, _number, _selectedStationId)
           .then((response) {
         //dismiss loading dialog
         if ((_progressHUD.state != null)) {

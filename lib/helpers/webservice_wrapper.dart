@@ -1,15 +1,17 @@
 import 'dart:convert';
 import '../services/service_help_request.dart';
 import '../models/help_request.dart';
+import '../models/station.dart';
 import 'common.dart';
 
 class WebserServiceWrapper {
+
   static void getPendingHelpRequestForProvider(String providerType,
-      String longitude, String latitude, bool firstCall, callback) {
-    try {
+      String longitude, String latitude, String stationId, bool firstCall, callback) {
+    //try {
       //call webservice to check if any live request
       ServiceHelpRequest
-          .retrieveLiveRequest(providerType, longitude, latitude)
+          .retrieveLiveRequest(providerType, longitude, latitude, stationId)
           .then((response) {
         List<HelpRequest> helpRequestList = new List<HelpRequest>();
 
@@ -33,11 +35,49 @@ class WebserServiceWrapper {
           var ex = new Exception(Common.wsTechnicalError);
           throw ex;
         }
-      }).catchError((e) {
+        });
+      /*}).catchError((e) {
+        throw e;
         callback(null, e, firstCall);
       });
     } catch (e) {
+      throw e;
       callback(null, e, firstCall);
-    }
+    }*/
   }
+
+
+  static void getStations(String providerType, callback)
+  {
+    List<Station> stations = new List<Station>();
+    try {
+          ServiceHelpRequest
+          .retrieveStations(providerType)
+          .then((response) {
+            if (response.statusCode == 200) {
+              Map<String, dynamic> decodedResponse = json.decode(response.body);
+              if (decodedResponse["station"] != null) {
+                  //build list of stations
+                  for (var stationJson in decodedResponse["station"]) {
+                    Station station = Station.fromJson(stationJson);
+                    stations.add(station);
+                  }
+                  callback(stations, null);
+              }   
+            } else{
+                callback(null, null);
+            }
+
+              
+          }).catchError((e){
+              callback(null, e);
+              throw e;
+          });
+      }
+      catch(e){
+        callback(null, e);
+        throw e;
+      }
+  }
+  
 }

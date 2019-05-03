@@ -276,11 +276,11 @@ class _MyHomePageState extends State<MyHomePage>
 
     var location = new Location();
     try {
-      _currentLocation = await location.getLocation;
+      _currentLocation = await location.getLocation();
       Common.myLocation.latitude = _currentLocation["latitude"];
       Common.myLocation.longitude = _currentLocation["longitude"];
 
-      location.onLocationChanged.listen((Map<String, double> currentLocation) {
+      location.onLocationChanged().listen((Map<String, double> currentLocation) {
         Common.myLocation.latitude = currentLocation["latitude"];
         Common.myLocation.longitude = currentLocation["longitude"];
       });
@@ -309,6 +309,7 @@ class _MyHomePageState extends State<MyHomePage>
         Common.providerType,
         Common.myLocation.longitude.toString(),
         Common.myLocation.latitude.toString(),
+        Common.patrol.stationId,
         firstCall,
         callbackWsGetExistingHelpReq);
   }
@@ -585,6 +586,7 @@ class _MyHomePageState extends State<MyHomePage>
               }
             } else {
               _registrationNeeded = true;
+
               //route to registration page
               Navigator.push(
                 context,

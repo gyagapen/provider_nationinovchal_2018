@@ -5,6 +5,7 @@ class Patrol {
   String providerType = "";
   String token = "";
   String mobileNumber = "";
+  String stationId = "";
 
   Patrol(
       {this.id,
@@ -12,7 +13,8 @@ class Patrol {
       this.deviceId,
       this.providerType,
       this.token,
-      this.mobileNumber});
+      this.mobileNumber,
+      this.stationId});
 
   factory Patrol.fromJson(Map<String, dynamic> json) {
     return Patrol(
@@ -21,6 +23,7 @@ class Patrol {
         deviceId: json['device_id'],
         providerType: json['service_provider_id'],
         token: json["token"],
-        mobileNumber: json["mobile_number"]);
+        mobileNumber: json["mobile_number"],
+        stationId: json["station_id"]);
   }
 }
