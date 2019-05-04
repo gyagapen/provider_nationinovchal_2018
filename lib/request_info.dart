@@ -13,6 +13,7 @@ import 'dart:async';
 import 'dialogs/dialog_assignment_error.dart';
 import 'services/service_help_request.dart';
 import 'dialogs/dialog_error_webservice.dart';
+import 'video_player.dart';
 
 class RequestInfoPage extends StatefulWidget {
   RequestInfoPage({Key key, this.helpRequest, this.patrolAssignmentId})
@@ -498,7 +499,7 @@ class _RequestInfoPageState extends State<RequestInfoPage>
               mainAxisSize: MainAxisSize.max,
               children: [
                 new Container(
-                    padding: new EdgeInsets.fromLTRB(40.0, 10.0, 25.0, 0.0),
+                    padding: new EdgeInsets.fromLTRB(40.0, 10.0, 64.0, 0.0),
                     child: new Text(
                       "buildingType: ",
                       style: new TextStyle(
@@ -521,7 +522,7 @@ class _RequestInfoPageState extends State<RequestInfoPage>
               mainAxisSize: MainAxisSize.max,
               children: [
                 new Container(
-                    padding: new EdgeInsets.fromLTRB(40.0, 10.0, 35.0, 0.0),
+                    padding: new EdgeInsets.fromLTRB(40.0, 10.0, 70.0, 0.0),
                     child: new Text(
                       "No of floors: ",
                       style: new TextStyle(
@@ -543,7 +544,7 @@ class _RequestInfoPageState extends State<RequestInfoPage>
               mainAxisSize: MainAxisSize.max,
               children: [
                 new Container(
-                    padding: new EdgeInsets.fromLTRB(40.0, 10.0, 60.0, 0.0),
+                    padding: new EdgeInsets.fromLTRB(40.0, 10.0, 50.0, 0.0),
                     child: new Text(
                       "Person trapped: ",
                       style: new TextStyle(
@@ -557,6 +558,24 @@ class _RequestInfoPageState extends State<RequestInfoPage>
                       helpRequest.personTrapped ? "Yes" : "No",
                       style: new TextStyle(color: Colors.black, fontSize: 15.0),
                     )),
+              ],
+            ),
+            //video button
+            new Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.max,
+              children: [
+                 new Container(
+                    padding: new EdgeInsets.fromLTRB(0.0, 20.0, 0.0, 0.0),
+                    child:
+                      new FlatButton(
+                        color: Colors.black,
+                        child: new Text("Show video", style: TextStyle(color: Colors.white),),
+                        onPressed: (){
+                          VideoPlayerDialog.showWitnessVideo(context, helpRequest.id);
+                        },
+                      )
+                 )
               ],
             ),
           ],

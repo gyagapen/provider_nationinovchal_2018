@@ -170,6 +170,7 @@ class _MyHomePageState extends State<MyHomePage>
           padding: new EdgeInsets.fromLTRB(5.0, 10.0, 5.0, 5.0),
           child: new AnimatedWaitingText(
             animation: animation,
+            waitingText: "Waiting for new requests",
           ),
         ),
       ],

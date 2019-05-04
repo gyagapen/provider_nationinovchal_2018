@@ -3,8 +3,10 @@ import 'package:flutter/material.dart';
 import '../helpers/open_settings_menu.dart';
 
 class AnimatedWaitingText extends AnimatedWidget {
-  AnimatedWaitingText({Key key, Animation<double> animation})
+  AnimatedWaitingText({Key key, Animation<double> animation, this.waitingText})
       : super(key: key, listenable: animation);
+
+  String waitingText =  "Waiting for new requests";
 
   Widget build(BuildContext context) {
     final Animation<double> animation = listenable;
@@ -25,7 +27,7 @@ class AnimatedWaitingText extends AnimatedWidget {
             ),
             new Container(
               child: new Text(
-                "Waiting for new requests",
+               waitingText,
                 style: new TextStyle(color: Colors.black),
               ),
             )

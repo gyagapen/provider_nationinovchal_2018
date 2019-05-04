@@ -1,10 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'dart:isolate';
 import 'dart:async';
 import 'home.dart';
 
 //void main() => runApp(new MyApp());
 Future<Null> main() async  {
+
+
+  //block rotation
+  SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp])
+    .then((_) {
+      runApp(new MyApp());
+  });
+
   runApp(new MyApp());
 }
 
