@@ -47,7 +47,7 @@ class WebserServiceWrapper {
   }
 
 
-  static void getStations(String providerType, callback)
+  static void getStations(String providerType, callback, {bool initCall = false})
   {
     List<Station> stations = new List<Station>();
     try {
@@ -62,20 +62,20 @@ class WebserServiceWrapper {
                     Station station = Station.fromJson(stationJson);
                     stations.add(station);
                   }
-                  callback(stations, null);
+                  callback(stations, null, initCall);
               }   
             } else{
-                callback(null, null);
+                callback(null, null, initCall);
             }
 
               
           }).catchError((e){
-              callback(null, e);
+              callback(null, e, initCall);
               throw e;
           });
       }
       catch(e){
-        callback(null, e);
+        callback(null, e, initCall);
         throw e;
       }
   }

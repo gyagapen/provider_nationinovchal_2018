@@ -272,7 +272,7 @@ class _RequestInfoPageState extends State<RequestInfoPage>
                 new Container(
                     padding: new EdgeInsets.fromLTRB(0.0, 10.0, 0.0, 0.0),
                     child: new Text(
-                      helpRequest.name,
+                      helpRequest.name + (helpRequest.isWitness ? " (Witness)" : ""),
                       style: new TextStyle(color: Colors.black, fontSize: 15.0),
                     )),
               ],
@@ -448,11 +448,127 @@ class _RequestInfoPageState extends State<RequestInfoPage>
           )
         ]);
 
+
+      //witness info
+      var spWitnessInfoContent = new Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        new Column(
+          children: [
+            //Title
+            new Center(
+              child: new Container(
+                padding: new EdgeInsets.fromLTRB(0.0, 10.0, 0.0, 10.0),
+                child: new Text(
+                  "Additional Info",
+                  style: new TextStyle(
+                      fontStyle: FontStyle.italic,
+                      fontSize: 17.0,
+                      fontWeight: FontWeight.w500),
+                ),
+              ),
+            ),
+            //impact type
+            new Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              mainAxisSize: MainAxisSize.max,
+              children: [
+                new Container(
+                    padding: new EdgeInsets.fromLTRB(40.0, 10.0, 25.0, 0.0),
+                    child: new Text(
+                      "Impacted resource: ",
+                      style: new TextStyle(
+                          color: Colors.black,
+                          fontSize: 15.0,
+                          fontWeight: FontWeight.bold),
+                    )),
+                new Container(
+                    padding: new EdgeInsets.fromLTRB(0.0, 10.0, 0.0, 0.0),
+                    child: new Text(
+                      helpRequest.impactType,
+                      style: new TextStyle(color: Colors.black, fontSize: 15.0),
+                    )),
+              ],
+            ),
+            //building type
+            (helpRequest.buildingType == "" ? new Container() :
+            new Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              mainAxisSize: MainAxisSize.max,
+              children: [
+                new Container(
+                    padding: new EdgeInsets.fromLTRB(40.0, 10.0, 25.0, 0.0),
+                    child: new Text(
+                      "buildingType: ",
+                      style: new TextStyle(
+                          color: Colors.black,
+                          fontSize: 15.0,
+                          fontWeight: FontWeight.bold),
+                    )),
+                new Container(
+                    padding: new EdgeInsets.fromLTRB(0.0, 10.0, 0.0, 0.0),
+                    child: new Text(
+                      helpRequest.buildingType,
+                      style: new TextStyle(color: Colors.black, fontSize: 15.0),
+                    )),
+              ],
+            )),
+            //no of floors
+            (helpRequest.noFloors == "" ? new Container() :
+            new Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              mainAxisSize: MainAxisSize.max,
+              children: [
+                new Container(
+                    padding: new EdgeInsets.fromLTRB(40.0, 10.0, 35.0, 0.0),
+                    child: new Text(
+                      "No of floors: ",
+                      style: new TextStyle(
+                          color: Colors.black,
+                          fontSize: 15.0,
+                          fontWeight: FontWeight.bold),
+                    )),
+                new Container(
+                    padding: new EdgeInsets.fromLTRB(0.0, 10.0, 0.0, 0.0),
+                    child: new Text(
+                      helpRequest.noFloors,
+                      style: new TextStyle(color: Colors.black, fontSize: 15.0),
+                    )),
+              ],
+            )),
+            //person trapped
+            new Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              mainAxisSize: MainAxisSize.max,
+              children: [
+                new Container(
+                    padding: new EdgeInsets.fromLTRB(40.0, 10.0, 60.0, 0.0),
+                    child: new Text(
+                      "Person trapped: ",
+                      style: new TextStyle(
+                          color: Colors.black,
+                          fontSize: 15.0,
+                          fontWeight: FontWeight.bold),
+                    )),
+                new Container(
+                    padding: new EdgeInsets.fromLTRB(0.0, 10.0, 0.0, 0.0),
+                    child: new Text(
+                      helpRequest.personTrapped ? "Yes" : "No",
+                      style: new TextStyle(color: Colors.black, fontSize: 15.0),
+                    )),
+              ],
+            ),
+          ],
+        ),
+      ],
+    );
+
     var spCard = new Card(
         margin: new EdgeInsets.fromLTRB(0.0, 25.0, 0.0, 0.0),
         child: new Container(
           width: 450.0,
-          height: 450.0,
+          height: 650.0,
           child: new Column(children: [
             spNameHeader,
             new Divider(
@@ -462,7 +578,9 @@ class _RequestInfoPageState extends State<RequestInfoPage>
             new Divider(
               color: Colors.black45,
             ),
-            spLocationContent
+            spLocationContent,
+            (helpRequest.isWitness ? new Divider(color: Colors.black45,) : new Container() ) ,
+            (helpRequest.isWitness ? spWitnessInfoContent : new Container() ) ,
           ]),
         ));
 

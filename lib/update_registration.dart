@@ -40,10 +40,8 @@ class _UpdateRegistrationPageState extends State<UpdateRegistrationPage> {
       loading: false,
     );
 
-    getStations(_providerType);
-    setState(() {
-       _selectedStationId = Common.patrol.stationId;
-    });
+    getStations(_providerType, initCall: true);
+
     
   }
 
@@ -166,6 +164,7 @@ class _UpdateRegistrationPageState extends State<UpdateRegistrationPage> {
                     onChanged: (newValue) {
                       setState(() {
                         _providerType = newValue;
+                        getStations(newValue);
                       });
                     }),
               ),
@@ -278,16 +277,18 @@ class _UpdateRegistrationPageState extends State<UpdateRegistrationPage> {
         new SnackBar(backgroundColor: color, content: new Text(message)));
   }
 
-  void getStations(String providerType)
+
+  void getStations(String providerType, {bool initCall = false})
   {
     //show loading progress
       if ((_progressHUD.state != null)) {
         _progressHUD.state.show();
       }
-      WebserServiceWrapper.getStations(providerType, getStationCallCompleted);
+      _stations = new List<Station>();
+      WebserServiceWrapper.getStations(providerType, getStationCallCompleted, initCall: initCall);
   }
 
-  void getStationCallCompleted(List<Station> stationList, Exception ex)
+  void getStationCallCompleted(List<Station> stationList, Exception ex, bool initCall)
   {
     //dismiss loading dialog
     if ((_progressHUD.state != null)) {
@@ -300,6 +301,11 @@ class _UpdateRegistrationPageState extends State<UpdateRegistrationPage> {
           _selectedStationId = stationList.elementAt(0).id;
         } else{
           _selectedStationId = "0";
+        }
+        if(initCall)
+        {
+          initCall = false;
+          _selectedStationId = Common.patrol.stationId;
         }
         _stations = stationList;  
       });

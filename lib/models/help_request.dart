@@ -13,6 +13,11 @@ class HelpRequest {
   String deviceName;
   String status;
   String eventType;
+  bool isWitness;
+  String impactType;
+  String buildingType;
+  String noFloors;
+  bool personTrapped;
   ImageIcon eventIcon;
   PositionObject latestPosition;
   List<AssignmentDetails> assignments;
@@ -31,7 +36,13 @@ class HelpRequest {
       this.eventType,
       this.assignments,
       this.latestPosition,
-      this.eventIcon});
+      this.eventIcon,
+      this.isWitness,
+      this.impactType,
+      this.buildingType,
+      this.noFloors,
+      this.personTrapped
+      });
 
   factory HelpRequest.fromJson(Map<String, dynamic> json) {
     PositionObject positionObject;
@@ -59,8 +70,14 @@ class HelpRequest {
         deviceName: json['device_name'],
         status: json['status'],
         eventType: json['event_type'],
+        impactType: json['impact_type'],
+        buildingType: json['building_type'],
+        noFloors: json['no_floors'],
+        personTrapped: json['person_trapped'] == "1",
+        isWitness: json['is_witness'] == "1",
         eventIcon: imageIcon,
         latestPosition: positionObject,
+        
         assignments: assignmentDetails);
 
     String requestedProvidersStr = json['requested_providers'];

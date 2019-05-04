@@ -445,7 +445,7 @@ class _MyHomePageState extends State<MyHomePage>
               new Container(
                   padding: new EdgeInsets.fromLTRB(5.0, 0.0, 0.0, 0.0),
                   child: new Text(
-                    helpRequest.name,
+                    helpRequest.name + (helpRequest.isWitness ? " (Witness)" : ""),
                     style: new TextStyle(color: Colors.black, fontSize: 15.0),
                   )),
             ]),

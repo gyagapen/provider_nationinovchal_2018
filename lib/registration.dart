@@ -276,10 +276,12 @@ class _RegistrationPageState extends State<RegistrationPage> {
       if ((_progressHUD.state != null)) {
         _progressHUD.state.show();
       }
+      _stations = new List<Station>();
+      _selectedStationId = "0";
       WebserServiceWrapper.getStations(providerType, getStationCallCompleted);
   }
 
-  void getStationCallCompleted(List<Station> stationList, Exception ex)
+  void getStationCallCompleted(List<Station> stationList, Exception ex, bool initCall)
   {
     //dismiss loading dialog
     if ((_progressHUD.state != null)) {
