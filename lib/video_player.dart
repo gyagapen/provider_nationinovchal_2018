@@ -16,19 +16,21 @@ class VideoPlayerDialog{
     builder: (BuildContext context) {
 
     
+      var videoWidget = new VideoApp(videoUrl: videoUrl,);
 
       return new AlertDialog(
         title: new Text('Witness Video'),
         content: 
               new Container(
                 height: 600,
-                child: new VideoApp(videoUrl: videoUrl,),
+                child: videoWidget,
               ),
         //new VideoApp(videoUrl: videoUrl,),
         actions: <Widget>[
           new FlatButton(
               child: new Text('Close'),
               onPressed: () {
+                videoWidget.videoController.pause();
                 Navigator.pop(context);
                 //callback(id);
               }),
@@ -48,12 +50,13 @@ class VideoApp extends StatefulWidget {
   }): super(key: key);
 
   String videoUrl;
+  VideoPlayerController videoController;
+
 
   _VideoAppState createState() => _VideoAppState();
 }
 
 class _VideoAppState extends State<VideoApp> with SingleTickerProviderStateMixin {
-  VideoPlayerController _controller;
   AnimationController animationController;
   Animation<double> animation;
 
@@ -61,12 +64,12 @@ class _VideoAppState extends State<VideoApp> with SingleTickerProviderStateMixin
   void initState() {
     super.initState();
    
-    _controller = VideoPlayerController.network(widget.videoUrl)
+    widget.videoController = VideoPlayerController.network(widget.videoUrl)
       ..initialize().then((_) {
         // Ensure the first frame is shown after the video is initialized, even before the play button has been pressed.
         setState(() {
-           _controller.setLooping(true);
-          _controller.play();
+          widget.videoController.setLooping(true);
+          widget.videoController.play();
         });
       });
 
@@ -87,12 +90,13 @@ class _VideoAppState extends State<VideoApp> with SingleTickerProviderStateMixin
     animationController.forward();
   }
 
+
   void _onVideButtonPressed()
   {    
     setState(() {
-                    _controller.value.isPlaying
-                        ? _controller.pause()
-                        : _controller.play();
+                    widget.videoController.value.isPlaying
+                        ? widget.videoController.pause()
+                        : widget.videoController.play();
                   });
   }
 
@@ -100,7 +104,7 @@ class _VideoAppState extends State<VideoApp> with SingleTickerProviderStateMixin
 
   @override
   Widget build(BuildContext context) {
-    return _controller.value.initialized ? Column(
+    return widget.videoController.value.initialized ? Column(
         mainAxisAlignment: MainAxisAlignment.center,
           mainAxisSize: MainAxisSize.max,
           children: [
@@ -108,12 +112,12 @@ class _VideoAppState extends State<VideoApp> with SingleTickerProviderStateMixin
                 width: 400,
                 height: 500,
                 child: AspectRatio(
-                  aspectRatio: _controller.value.aspectRatio,
-                  child: VideoPlayer(_controller),
+                  aspectRatio: widget.videoController.value.aspectRatio,
+                  child: VideoPlayer(widget.videoController),
                 ),
               ),
               new IconButton(
-              icon: new Icon(_controller.value.isPlaying? Icons.pause : Icons.play_arrow, color: Colors.red,),
+              icon: new Icon(widget.videoController.value.isPlaying? Icons.pause : Icons.play_arrow, color: Colors.red,),
               onPressed: _onVideButtonPressed,
             )
         ]) : //waiting gif
@@ -144,6 +148,7 @@ class _VideoAppState extends State<VideoApp> with SingleTickerProviderStateMixin
   @override
   void dispose() {
     super.dispose();
-    _controller.dispose();
+    widget.videoController.pause();
+    widget.videoController.dispose();
   }
 }
