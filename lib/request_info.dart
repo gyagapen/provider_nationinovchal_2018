@@ -181,9 +181,10 @@ class _RequestInfoPageState extends State<RequestInfoPage>
       ),
     ];
 
-    var mainWrapper = new Column(
-      mainAxisAlignment: MainAxisAlignment.start,
-      mainAxisSize: MainAxisSize.max,
+    var mainWrapper = new ListView(
+      //mainAxisAlignment: MainAxisAlignment.start,
+      //mainAxisSize: MainAxisSize.max,
+      shrinkWrap: true,
       children: [
         buildHelpRequestCard(),
       ],

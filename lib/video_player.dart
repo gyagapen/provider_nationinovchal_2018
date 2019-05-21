@@ -15,8 +15,13 @@ class VideoPlayerDialog{
     barrierDismissible: false, // user must tap button!
     builder: (BuildContext context) {
 
+      
+      double windowHeight = MediaQuery.of(context).size.height;
+      double windowWidth = MediaQuery.of(context).size.width;
+      
     
-      var videoWidget = new VideoApp(videoUrl: videoUrl,);
+      var videoWidget = new VideoApp(videoUrl: videoUrl,windowHeight: windowHeight,
+                                        windowWidth: windowWidth,);
 
       return new AlertDialog(
         title: new Text('Witness Video'),
@@ -47,7 +52,12 @@ class VideoApp extends StatefulWidget {
   VideoApp({
     Key key,
     this.videoUrl,
+    this.windowHeight,
+    this.windowWidth
   }): super(key: key);
+
+  double windowHeight;
+  double windowWidth;
 
   String videoUrl;
   VideoPlayerController videoController;
@@ -59,6 +69,8 @@ class VideoApp extends StatefulWidget {
 class _VideoAppState extends State<VideoApp> with SingleTickerProviderStateMixin {
   AnimationController animationController;
   Animation<double> animation;
+
+
 
   @override
   void initState() {
@@ -109,8 +121,8 @@ class _VideoAppState extends State<VideoApp> with SingleTickerProviderStateMixin
           mainAxisSize: MainAxisSize.max,
           children: [
               new Container(
-                width: 400,
-                height: 500,
+                width: widget.windowHeight*0.50,
+                height: widget.windowHeight*0.54,
                 child: AspectRatio(
                   aspectRatio: widget.videoController.value.aspectRatio,
                   child: VideoPlayer(widget.videoController),
